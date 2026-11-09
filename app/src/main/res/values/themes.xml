@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.TawbaApp" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.TawbaApp.Splash" parent="Theme.SplashScreen">
+
+        <item name="windowSplashScreenBackground">@color/green</item>
+
+
+        <item name="windowSplashScreenAnimatedIcon">@drawable/app_name</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/white</item>
+    </style>
+</resources>
