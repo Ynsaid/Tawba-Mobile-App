@@ -1,0 +1,11 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64dp"
+    android:height="64dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+
+    <!-- Red Heart -->
+    <path
+        android:fillColor="#E53935"
+        android:pathData="M 32,56 C 32,56 10,41.5 10,25.5 C 10,17.5 16.5,11 24.5,11 C 28.9,11 32,13.5 32,13.5 C 32,13.5 35.1,11 39.5,11 C 47.5,11 54,17.5 54,25.5 C 54,41.5 32,56 32,56 Z"/>
+</vector>

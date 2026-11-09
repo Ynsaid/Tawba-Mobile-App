@@ -1,0 +1,38 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64dp"
+    android:height="64dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+
+    <!-- Compass Outer Ring -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#7E57C2"
+        android:strokeWidth="4"
+        android:pathData="M 32,10 C 19.85,10 10,19.85 10,32 C 10,44.15 19.85,54 32,54 C 44.15,54 54,44.15 54,32 C 54,19.85 44.15,10 32,10 Z"/>
+
+    <!-- Compass North Needle (Purple) -->
+    <path
+        android:fillColor="#5E35B1"
+        android:pathData="M 32,16 L 37,32 L 32,29 Z"/>
+
+    <!-- Compass North Needle Accent -->
+    <path
+        android:fillColor="#7E57C2"
+        android:pathData="M 32,16 L 27,32 L 32,29 Z"/>
+
+    <!-- Compass South Needle (Gold) -->
+    <path
+        android:fillColor="#FFB300"
+        android:pathData="M 32,48 L 37,32 L 32,35 Z"/>
+
+    <!-- Compass South Needle Accent -->
+    <path
+        android:fillColor="#FFCA28"
+        android:pathData="M 32,48 L 27,32 L 32,35 Z"/>
+
+    <!-- Center Pivot Pin -->
+    <path
+        android:fillColor="#26A69A"
+        android:pathData="M 32,32 m -3,0 a 3,3 0 1,0 6,0 a 3,3 0 1,0 -6,0"/>
+</vector>

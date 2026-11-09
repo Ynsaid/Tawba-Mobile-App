@@ -44,12 +44,12 @@ fun AdhkarsPage(navController: NavController,darkModeViewModel: DarkModeViewMode
     )
     // ادعية list
     val adiyaItems = listOf(
-        Triple("دعاء الرزق", R.drawable.pray_svg_icon, Color(0xFFCCE5FF)),
-        Triple("دعاء الشفاء", R.drawable.pray_svg_icon, Color(0xFFFFB5E8)),
-        Triple("دعاء التوبة", R.drawable.pray_svg_icon, Color(0xFFFFD6A5)),
-        Triple("دعاء الكرب", R.drawable.pray_svg_icon, Color(0xFFB2F0B2)),
-        Triple("دعاء المطر", R.drawable.pray_svg_icon, Color(0xFFDFD7FF)),
-        Triple("دعاء الاستخارة", R.drawable.pray_svg_icon, Color(0xFFFFC6C6))
+        Triple("دعاء الرزق", R.drawable.rizq_svg_icon, Color(0xFFCCE5FF)),
+        Triple("دعاء الشفاء", R.drawable.shifa_svg_icon, Color(0xFFFFB5E8)),
+        Triple("دعاء التوبة", R.drawable.tawba_svg_icon, Color(0xFFFFD6A5)),
+        Triple("دعاء الكرب", R.drawable.karb_svg_icon, Color(0xFFB2F0B2)),
+        Triple("دعاء المطر", R.drawable.matar_svg_icon, Color(0xFFDFD7FF)),
+        Triple("دعاء الاستخارة", R.drawable.istikhara_svg_icon, Color(0xFFFFC6C6))
     )
 
     val isDark by darkModeViewModel.isDark.collectAsState()

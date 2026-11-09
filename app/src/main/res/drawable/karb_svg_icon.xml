@@ -1,0 +1,25 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64dp"
+    android:height="64dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+
+    <!-- Golden Sun Body -->
+    <path
+        android:fillColor="#FFC107"
+        android:pathData="M 32,14 C 22.06,14 14,22.06 14,32 C 14,41.94 22.06,50 32,50 C 41.94,50 50,41.94 50,32 C 50,22.06 41.94,14 32,14 Z"/>
+
+    <!-- Sun rays in background -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M 32,6 L 32,11 M 32,53 L 32,58 M 6,32 L 11,32 M 53,32 L 58,32 M 13.6,13.6 L 17.1,17.1 M 46.9,46.9 L 50.4,50.4 M 13.6,50.4 L 17.1,46.9 M 46.9,17.1 L 50.4,13.6"
+        android:strokeColor="#FFB300"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"/>
+
+    <!-- Cloud clearing off -->
+    <path
+        android:fillColor="#78909C"
+        android:pathData="M 26,44 C 22.7,44 20,41.3 20,38 C 20,35.1 22.1,32.7 24.9,32.1 C 25.8,27.8 29.6,24.6 34.2,24.6 C 39.5,24.6 43.8,28.9 43.8,34.2 C 47,34.6 49.5,37.3 49.5,40.6 C 49.5,44.1 46.8,44 43.4,44 Z"
+        android:alpha="0.85"/>
+</vector>
