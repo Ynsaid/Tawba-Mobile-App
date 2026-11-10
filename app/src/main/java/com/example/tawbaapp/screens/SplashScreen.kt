@@ -28,6 +28,7 @@ import com.example.tawbaapp.R
 import com.example.tawbaapp.ui.theme.Green
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun SplashScreen(onSplashFinished: () -> Unit) {
@@ -47,7 +48,7 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
                 animationSpec = tween(durationMillis = 1000, easing = FastOutSlowInEasing)
             )
         }
-        delay(2500)
+        delay(2500.milliseconds)
         onSplashFinished()
     }
 
