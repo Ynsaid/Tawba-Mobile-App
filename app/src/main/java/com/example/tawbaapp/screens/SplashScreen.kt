@@ -129,13 +129,7 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
                 strokeWidth = 2.5.dp,
                 modifier = Modifier.size(26.dp)
             )
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = "جاري التحميل...",
-                fontSize = 8.sp,
-                fontFamily = FontFamily(Font(R.font.cairo_medium)),
-                color = Color.White.copy(alpha = 0.7f)
-            )
+
         }
     }
 }
