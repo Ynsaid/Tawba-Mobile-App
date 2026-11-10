@@ -51,31 +51,32 @@ class MainActivity : ComponentActivity() {
         val surahList: List<Surah> = Gson().fromJson(jsonString, surahListType)
 
         val appPrefs = AppPreferences(this)
-        val isFirstLaunch = appPrefs.isFirstLaunch()
 
         setContent {
             TawbaAppTheme {
                 val navController = rememberNavController()
-                var showSplash by remember { mutableStateOf(isFirstLaunch) }
-
-                LaunchedEffect(Unit) {
-                    if (isFirstLaunch) {
-                        kotlinx.coroutines.delay(2000.milliseconds)
-                        appPrefs.setFirstLaunchDone()
-                    }
-                    showSplash = false
-                }
-
                 val darkModeViewModel: DarkModeViewModel = viewModel()
                 val readingProgressViewModel: ReadingProgressViewModel = viewModel()
 
-                if (showSplash) {
-                    SplashScreen()
-                } else {
-                    NavHost(
-                        navController = navController,
-                        startDestination = "section"
-                    ) {
+                NavHost(
+                    navController = navController,
+                    startDestination = "splash"
+                ) {
+                    composable("splash") {
+                        SplashScreen(
+                            onSplashFinished = {
+                                val nextDestination = if (appPrefs.isFirstLaunch()) {
+                                    appPrefs.setFirstLaunchDone()
+                                    "home"
+                                } else {
+                                    "section"
+                                }
+                                navController.navigate(nextDestination) {
+                                    popUpTo("splash") { inclusive = true }
+                                }
+                            }
+                        )
+                    }
                         composable("home") {
                             HomePage(navController)
                         }
@@ -170,11 +171,4 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-}
 
-@Composable
-fun SplashScreen() {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Text("توبة")
-    }
-}

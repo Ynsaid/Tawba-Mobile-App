@@ -93,7 +93,9 @@ fun StartButton(navController: NavController) {
 
     Button(
         onClick = {
-            navController.navigate("section")
+            navController.navigate("section") {
+                popUpTo("home") { inclusive = true }
+            }
         },
         modifier = Modifier
             .height(54.dp)
