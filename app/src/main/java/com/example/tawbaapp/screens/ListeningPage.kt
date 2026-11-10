@@ -1,4 +1,4 @@
-package com.example.tawbaapp.Screens
+package com.example.tawbaapp.screens
 
 import android.media.MediaPlayer
 import androidx.compose.foundation.background
@@ -28,6 +28,7 @@ import com.example.tawbaapp.ViewModals.DarkModeViewModel
 import com.example.tawbaapp.ui.theme.Green
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlin.time.Duration.Companion.milliseconds
 
 private fun MediaPlayer?.safeIsPlaying(): Boolean {
     return try {
@@ -190,8 +191,8 @@ fun ListeningPage(
 
     val listState = rememberLazyListState()
     var scrollToTop by remember { mutableStateOf(false) }
-    var selectedIndex by remember { mutableStateOf(-1) }
-    var progress by remember { mutableStateOf(0f) }
+    var selectedIndex by remember { mutableIntStateOf(-1) }
+    var progress by remember { mutableFloatStateOf(0f) }
     var durationText by remember { mutableStateOf("0:00") }
     var currentText by remember { mutableStateOf("0:00") }
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
@@ -289,7 +290,7 @@ fun ListeningPage(
                     isPlaying = false
                 }
             }
-            delay(500)
+            delay(500.milliseconds)
         }
     }
 

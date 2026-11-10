@@ -96,7 +96,7 @@ fun AdhkarsPage(navController: NavController,darkModeViewModel: DarkModeViewMode
                 horizontalArrangement = Arrangement.spacedBy(20.dp),
                 userScrollEnabled = false
             ) {
-                itemsIndexed(adhkarItems) { _, (title, image, color) ->
+                itemsIndexed(adhkarItems) { _, (title, image) ->
                     AdhkarItem(title = title, color = Bg_Prayer, image = image){
                         navController.navigate("adhkar_detail/$title")
                     }
@@ -125,7 +125,7 @@ fun AdhkarsPage(navController: NavController,darkModeViewModel: DarkModeViewMode
                 horizontalArrangement = Arrangement.spacedBy(20.dp),
                 userScrollEnabled = false
             ) {
-                itemsIndexed(adiyaItems) { _, (title, image, color) ->
+                itemsIndexed(adiyaItems) { _, (title, image) ->
                     AdhkarItem(title = title, color = Bg_Prayer, image = image){
                         navController.navigate("adhkar_detail/$title")
                     }

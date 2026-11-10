@@ -1,4 +1,4 @@
-package com.example.tawbaapp.Screens
+package com.example.tawbaapp.screens
 
 import android.annotation.SuppressLint
 import android.os.Build

@@ -1,4 +1,4 @@
-package com.example.tawbaapp.Screens
+package com.example.tawbaapp.screens
 
 import com.example.tawbaapp.Classes.Surah
 import androidx.compose.foundation.background
@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -41,7 +41,7 @@ fun SurahPage(
     }
 
     LaunchedEffect(savedAyahIndex) {
-        val verses = surah.verses ?: emptyList()
+        val verses = surah.verses
         if (savedAyahIndex in verses.indices) {
             listState.scrollToItem(savedAyahIndex)
         }
@@ -52,7 +52,7 @@ fun SurahPage(
     }
 
     LaunchedEffect(firstVisibleIndex) {
-        val verses = surah.verses ?: emptyList()
+        val verses = surah.verses
         if (firstVisibleIndex in verses.indices) {
             readingProgressViewModel.saveLastRead(surah, firstVisibleIndex)
         }
@@ -94,7 +94,7 @@ fun SurahPage(
                     color = Color.White
                 )
 
-                Divider(
+                HorizontalDivider(
                     modifier = Modifier
                         .padding(vertical = 6.dp)
                         .width(180.dp),
@@ -118,7 +118,7 @@ fun SurahPage(
                 .padding(16.dp),
             horizontalAlignment = Alignment.End
         ) {
-            itemsIndexed(surah.verses ?: emptyList()) { _, ayah ->
+            itemsIndexed(surah.verses) { _, ayah ->
                 Text(
                     text = ayah.text,
                     fontSize = 24.sp,

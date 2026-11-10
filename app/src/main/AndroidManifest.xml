@@ -17,7 +17,7 @@
 
     <!-- Apply splash theme only to MainActivity -->
     <activity
-        android:name=".Screens.MainActivity"
+        android:name=".screens.MainActivity"
         android:exported="true"
         android:label="@string/app_name"
         android:theme="@style/Theme.TawbaApp.Splash">  <!-- ✅ use splash theme here -->

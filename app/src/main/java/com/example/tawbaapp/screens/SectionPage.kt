@@ -1,4 +1,4 @@
-package com.example.tawbaapp.Screens
+package com.example.tawbaapp.screens
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
@@ -40,6 +40,7 @@ import com.google.gson.Gson
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,7 +82,7 @@ fun SectionPage(
     LaunchedEffect(Unit) {
         while (true) {
             offsetX.animateTo(0f, animationSpec = tween(500))
-            delay(600)
+            delay(600.milliseconds)
             offsetX.animateTo(8f, animationSpec = tween(500))
             delay(600)
         }

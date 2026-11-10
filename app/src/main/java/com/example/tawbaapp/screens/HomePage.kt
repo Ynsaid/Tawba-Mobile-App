@@ -1,8 +1,9 @@
+package com.example.tawbaapp.screens
+
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -21,14 +22,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.tawbaapp.R
-import com.example.tawbaapp.ViewModals.DarkModeViewModel
 import com.example.tawbaapp.ui.theme.Black
 import com.example.tawbaapp.ui.theme.Green
 import kotlinx.coroutines.delay
 
 @Composable
-fun HomePage(navController: NavController,darkModeViewModel: DarkModeViewModel) {
-    val isDark by darkModeViewModel.isDark.collectAsState()
+fun HomePage(navController: NavController) {
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -112,7 +112,7 @@ fun StartButton(navController: NavController) {
                 fontSize = 24.sp,
                 fontFamily = FontFamily(Font(R.font.cairo_blod)),
                 modifier = Modifier
-                    .align(Alignment.CenterVertically) // ⬅️ Fix text alignment
+                    .align(Alignment.CenterVertically)
             )
             Image(
                 painter = painterResource(id = R.drawable.arrow_right_icon),

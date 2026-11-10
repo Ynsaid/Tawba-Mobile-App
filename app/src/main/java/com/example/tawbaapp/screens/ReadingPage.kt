@@ -1,4 +1,4 @@
-package com.example.tawbaapp.Screens
+package com.example.tawbaapp.screens
 
 import com.example.tawbaapp.Classes.Surah
 import androidx.compose.animation.animateColorAsState

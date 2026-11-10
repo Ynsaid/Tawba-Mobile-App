@@ -1,17 +1,16 @@
-package com.example.tawbaapp.Screens
+package com.example.tawbaapp.screens
 
 import AdhkarDetailPage
 import AdhkarsPage
-import HomePage
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -20,8 +19,6 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -38,6 +35,7 @@ import com.example.tawbaapp.ui.theme.TawbaAppTheme
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.net.URLDecoder
+import kotlin.time.Duration.Companion.milliseconds
 
 class MainActivity : ComponentActivity() {
 
@@ -62,7 +60,7 @@ class MainActivity : ComponentActivity() {
 
                 LaunchedEffect(Unit) {
                     if (isFirstLaunch) {
-                        kotlinx.coroutines.delay(2000)
+                        kotlinx.coroutines.delay(2000.milliseconds)
                         appPrefs.setFirstLaunchDone()
                     }
                     showSplash = false
@@ -79,9 +77,8 @@ class MainActivity : ComponentActivity() {
                         startDestination = "section"
                     ) {
                         composable("home") {
-                            HomePage(navController,darkModeViewModel)
+                            HomePage(navController)
                         }
-
                         composable("section") {
                             SectionPage(
                                 navController = navController,
@@ -90,7 +87,6 @@ class MainActivity : ComponentActivity() {
                                 surahList = surahList
                             )
                         }
-
                         composable("reading") {
                             ReadingPage(
                                 navController = navController,
@@ -99,7 +95,6 @@ class MainActivity : ComponentActivity() {
                                 readingProgressViewModel = readingProgressViewModel
                             )
                         }
-
                         composable(
                             route = "surah/{surahJson}",
                             arguments = listOf(
@@ -180,11 +175,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun SplashScreen() {
     Box(modifier = Modifier.fillMaxSize()) {
-        Image(
-            painter = painterResource(id = R.drawable.background),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
+        Text("توبة")
     }
 }
