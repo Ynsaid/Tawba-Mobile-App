@@ -20,8 +20,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.tawbaapp.ViewModals.DarkModeViewModel
-import com.example.tawbaapp.ViewModals.ReadingProgressViewModel
+import com.example.tawbaapp.viewmodals.DarkModeViewModel
+import com.example.tawbaapp.viewmodals.ReadingProgressViewModel
 import com.example.tawbaapp.R
 import com.example.tawbaapp.ui.theme.Green
 

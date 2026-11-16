@@ -1,4 +1,4 @@
-package com.example.tawbaapp.ViewModals
+package com.example.tawbaapp.viewmodals
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,8 +18,4 @@ class DarkModeViewModel(application: Application) : AndroidViewModel(application
         appPreferences.saveDarkMode(_isDark.value)
     }
 
-    fun setDark(value: Boolean) {
-        _isDark.value = value
-        appPreferences.saveDarkMode(value)
-    }
 }

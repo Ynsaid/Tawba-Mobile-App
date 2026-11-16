@@ -14,9 +14,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.*
 import androidx.compose.ui.unit.*
 import androidx.navigation.NavController
-import com.example.tawbaapp.ViewModals.DarkModeViewModel
+import com.example.tawbaapp.viewmodals.DarkModeViewModel
 import com.example.tawbaapp.R
-import com.example.tawbaapp.ViewModals.ReadingProgressViewModel
+import com.example.tawbaapp.viewmodals.ReadingProgressViewModel
 import com.example.tawbaapp.ui.theme.Green
 import com.google.gson.Gson
 import java.net.URLEncoder

@@ -1,4 +1,4 @@
-package com.example.tawbaapp.ViewModals
+package com.example.tawbaapp.viewmodals
 
 import android.app.Application
 import androidx.compose.runtime.State

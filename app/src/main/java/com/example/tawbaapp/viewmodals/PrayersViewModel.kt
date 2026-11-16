@@ -1,4 +1,4 @@
-package com.example.tawbaapp.ViewModals
+package com.example.tawbaapp.viewmodals
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

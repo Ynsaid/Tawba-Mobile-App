@@ -1,7 +1,5 @@
 package com.example.tawbaapp.screens
 
-import AdhkarDetailPage
-import AdhkarsPage
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -9,11 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -21,8 +15,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.tawbaapp.R
-import com.example.tawbaapp.ViewModals.DarkModeViewModel
-import com.example.tawbaapp.ViewModals.ReadingProgressViewModel
+import com.example.tawbaapp.viewmodals.DarkModeViewModel
+import com.example.tawbaapp.viewmodals.ReadingProgressViewModel
 import com.example.tawbaapp.Classes.AppPreferences
 import com.example.tawbaapp.Classes.ReaderPreference
 import com.example.tawbaapp.Classes.Surah
@@ -30,7 +24,6 @@ import com.example.tawbaapp.ui.theme.TawbaAppTheme
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.net.URLDecoder
-import kotlin.time.Duration.Companion.milliseconds
 
 class MainActivity : ComponentActivity() {
 

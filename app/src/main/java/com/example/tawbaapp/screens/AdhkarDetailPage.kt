@@ -1,3 +1,5 @@
+package com.example.tawbaapp.screens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,7 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.tawbaapp.ViewModals.DarkModeViewModel
+import com.example.tawbaapp.viewmodals.DarkModeViewModel
 import com.example.tawbaapp.R
 import com.example.tawbaapp.ui.theme.Bg_Prayer
 import com.example.tawbaapp.ui.theme.Black

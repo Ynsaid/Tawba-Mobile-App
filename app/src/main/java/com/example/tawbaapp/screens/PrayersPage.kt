@@ -27,8 +27,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.tawbaapp.ViewModals.DarkModeViewModel
-import com.example.tawbaapp.ViewModals.PrayerViewModel
+import com.example.tawbaapp.viewmodals.DarkModeViewModel
+import com.example.tawbaapp.viewmodals.PrayerViewModel
 import com.example.tawbaapp.R
 import com.example.tawbaapp.Classes.LocationDataStore
 import com.example.tawbaapp.ui.theme.Bg_Prayer
