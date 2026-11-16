@@ -80,8 +80,7 @@ class MainActivity : ComponentActivity() {
                             ReadingPage(
                                 navController = navController,
                                 surahs = surahList,
-                                darkModeViewModel = darkModeViewModel,
-                                readingProgressViewModel = readingProgressViewModel
+                                darkModeViewModel = darkModeViewModel
                             )
                         }
                         composable(
