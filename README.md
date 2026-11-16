@@ -38,11 +38,6 @@ The application follows the **MVVM architecture** and uses **Kotlin Coroutines**
 
 ## Screenshots
 
-Add screenshots of the app here.
-
-```text
-<img src="screenshots/home.png" width="300" />
-```
 
 ## Prayer Times API
 
