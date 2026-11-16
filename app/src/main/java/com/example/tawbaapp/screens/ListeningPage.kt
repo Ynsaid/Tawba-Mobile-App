@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -36,6 +35,7 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -50,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -57,6 +58,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -448,6 +450,7 @@ fun ListeningPage(
                 .fillMaxWidth()
                 .padding(
                     start = 16.dp,
+                    end = 16.dp,
                     top = 16.dp
                 ),
             verticalAlignment = Alignment.CenterVertically
@@ -470,6 +473,21 @@ fun ListeningPage(
                     }
                 )
             }
+
+            Text(
+                text = "الاستماع إلى القرآن",
+                fontFamily = FontFamily(
+                    Font(R.font.amiri_regular)
+                ),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (isDark) {
+                    Color.White
+                } else {
+                    Color.Black
+                },
+                modifier = Modifier.padding(start = 8.dp)
+            )
         }
 
         Box(
@@ -501,7 +519,9 @@ fun ListeningPage(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
+
                 Spacer(modifier = Modifier.height(12.dp))
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -511,12 +531,14 @@ fun ListeningPage(
                         color = Color.White,
                         fontSize = 12.sp
                     )
+
                     Text(
                         text = durationText,
                         color = Color.White,
                         fontSize = 12.sp
                     )
                 }
+
                 Slider(
                     value = progress,
                     onValueChange = { value ->
@@ -540,7 +562,9 @@ fun ListeningPage(
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
+
                 Spacer(modifier = Modifier.height(10.dp))
+
                 Row(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically,
@@ -560,6 +584,7 @@ fun ListeningPage(
                                 }
                             }
                     )
+
                     Box(
                         modifier = Modifier
                             .size(58.dp)
@@ -625,66 +650,74 @@ fun ListeningPage(
             }
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
         ) {
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                shape = RoundedCornerShape(14.dp),
-                placeholder = {
-                    Text(
-                        text = "ابحث عن سورة...",
-                        color = mutedColor,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Right,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        painter = painterResource(
-                            R.drawable.dots_icon
-                        ),
-                        contentDescription = "بحث",
-                        tint = Green
-                    )
-                },
-                trailingIcon = {
-                    if (searchQuery.isNotEmpty()) {
-                        IconButton(
-                            onClick = {
-                                searchQuery = ""
+            CompositionLocalProvider(
+                LocalLayoutDirection provides LayoutDirection.Rtl
+            ) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    shape = RoundedCornerShape(14.dp),
+                    placeholder = {
+                        Text(
+                            text = "ابحث عن سورة...",
+                            color = mutedColor,
+                            fontSize = 14.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Right,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(
+                                R.drawable.dots_icon
+                            ),
+                            contentDescription = "بحث",
+                            tint = Green
+                        )
+                    },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(
+                                onClick = {
+                                    searchQuery = ""
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(
+                                        R.drawable.dots_icon
+                                    ),
+                                    contentDescription = "مسح البحث",
+                                    tint = mutedColor
+                                )
                             }
-                        ) {
-                            Icon(
-                                painter = painterResource(
-                                    R.drawable.dots_icon
-                                ),
-                                contentDescription = "مسح البحث",
-                                tint = mutedColor
-                            )
                         }
-                    }
-                },
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Search
-                ),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = cardBackground,
-                    unfocusedContainerColor = cardBackground,
-                    focusedBorderColor = Green,
-                    unfocusedBorderColor = Color.Transparent,
-                    cursorColor = Green,
-                    focusedTextColor = textColor,
-                    unfocusedTextColor = textColor
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Search
+                    ),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = cardBackground,
+                        unfocusedContainerColor = cardBackground,
+                        focusedBorderColor = Green,
+                        unfocusedBorderColor = Color.Transparent,
+                        cursorColor = Green,
+                        focusedTextColor = textColor,
+                        unfocusedTextColor = textColor
+                    )
                 )
-            )
+            }
+
             if (audioError != null) {
                 Spacer(modifier = Modifier.height(10.dp))
 
