@@ -54,6 +54,7 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.milliseconds
 
 private data class HomeReader(
     val name: String,
@@ -249,11 +250,10 @@ fun SectionPage(
                     titleFont = cairoBold,
                     quranFont = amiriRegular,
                     onContinue = {
-                        val surah = resumeSurah
 
-                        if (surah != null) {
+                        if (resumeSurah != null) {
                             val json = URLEncoder.encode(
-                                gson.toJson(surah),
+                                gson.toJson(resumeSurah),
                                 "UTF-8"
                             )
 
@@ -376,7 +376,7 @@ fun SectionPage(
                         readerPreference.saveReaderId(reader.id)
                     } catch (exception: CancellationException) {
                         throw exception
-                    } catch (exception: Exception) {
+                    } catch (_: Exception) {
                         snackbarState.showSnackbar(
                             "تعذر حفظ القارئ المفضل."
                         )
@@ -438,7 +438,7 @@ private fun HomePrayerSection(
                 Duration.between(
                     current,
                     nextMinute
-                ).toMillis().coerceAtLeast(250L)
+                ).toMillis().coerceAtLeast(250L).milliseconds
             )
         }
     }
@@ -852,14 +852,14 @@ private fun AnimatedContinueArrow(
                 animationSpec = tween(500)
             )
 
-            delay(600)
+            delay(600.milliseconds)
 
             offsetX.animateTo(
                 targetValue = 8f,
                 animationSpec = tween(500)
             )
 
-            delay(600)
+            delay(600.milliseconds)
         }
     }
 
