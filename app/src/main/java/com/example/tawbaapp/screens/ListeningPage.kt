@@ -24,6 +24,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -679,9 +682,7 @@ fun ListeningPage(
                     },
                     leadingIcon = {
                         Icon(
-                            painter = painterResource(
-                                R.drawable.dots_icon
-                            ),
+                            imageVector = 	Icons.Outlined.Search,
                             contentDescription = "بحث",
                             tint = Green
                         )
@@ -694,9 +695,7 @@ fun ListeningPage(
                                 }
                             ) {
                                 Icon(
-                                    painter = painterResource(
-                                        R.drawable.dots_icon
-                                    ),
+                                    imageVector = 	Icons.Outlined.Close,
                                     contentDescription = "مسح البحث",
                                     tint = mutedColor
                                 )
