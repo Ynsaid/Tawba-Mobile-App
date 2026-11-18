@@ -1,4 +1,4 @@
-package com.example.tawbaapp.Classes
+package com.example.tawbaapp.classes
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit

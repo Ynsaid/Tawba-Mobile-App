@@ -1,10 +1,10 @@
-package com.example.tawbaapp.Classes
+package com.example.tawbaapp.classes
+
 data class Verse(
     val id: Int,
     val text: String,
     val translation: String
 )
-
 
 data class Surah(
     val id: Int,

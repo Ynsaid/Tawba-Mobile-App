@@ -35,7 +35,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.location.LocationManagerCompat
-import androidx.core.os.CancellationSignal
 import androidx.navigation.NavController
 import com.example.tawbaapp.R
 import com.example.tawbaapp.ui.theme.Green
@@ -56,6 +55,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import kotlin.time.Duration.Companion.milliseconds
 
 private data class SalahColors(
     val background: Color,
@@ -128,8 +128,7 @@ private suspend fun getPrayerDeviceLocation(
     }
 
     return suspendCancellableCoroutine { continuation ->
-        val cancellation = CancellationSignal()
-
+        val cancellation = android.os.CancellationSignal()
         continuation.invokeOnCancellation {
             cancellation.cancel()
         }
@@ -218,7 +217,7 @@ fun PrayersPage(
     LaunchedEffect(viewModel) {
         while (isActive) {
             viewModel.refreshIfDateChanged()
-            delay(30_000)
+            delay(30_000.milliseconds)
         }
     }
 
@@ -611,7 +610,7 @@ private fun PrayerCountdownCard(
     LaunchedEffect(zone) {
         while (isActive) {
             now = ZonedDateTime.now(zone)
-            delay(1000)
+            delay(1000.milliseconds)
         }
     }
 
@@ -775,7 +774,7 @@ private fun PrayerPlacePicker(
             showSettings = false
 
             try {
-                val location = withTimeoutOrNull(35_000L) {
+                val location = withTimeoutOrNull(35_000L.milliseconds) {
                     getPrayerDeviceLocation(context)
                 }
 
@@ -790,14 +789,14 @@ private fun PrayerPlacePicker(
                 }
             } catch (exception: CancellationException) {
                 throw exception
-            } catch (exception: PrayerLocationDisabled) {
+            } catch (_: PrayerLocationDisabled) {
                 locationError =
                     "خدمة الموقع معطلة. فعّلها ثم أعد المحاولة."
                 showSettings = true
-            } catch (exception: SecurityException) {
+            } catch (_: SecurityException) {
                 locationError =
                     "لم يتم منح صلاحية الموقع. يمكنك اختيار المدينة يدويًا."
-            } catch (exception: Exception) {
+            } catch (_: Exception) {
                 locationError =
                     "تعذر الحصول على موقعك. تحقق من إعدادات الموقع وأعد المحاولة."
             } finally {

@@ -1,4 +1,4 @@
-package com.example.tawbaapp.Classes
+package com.example.tawbaapp.classes
 
 data class PrayerTimes(
     val fajr: String,

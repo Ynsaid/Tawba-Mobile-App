@@ -36,8 +36,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.tawbaapp.Classes.ReaderPreference
-import com.example.tawbaapp.Classes.Surah
+import com.example.tawbaapp.classes.ReaderPreference
+import com.example.tawbaapp.classes.Surah
 import com.example.tawbaapp.R
 import com.example.tawbaapp.ui.theme.Green
 import com.example.tawbaapp.viewmodals.DarkModeViewModel

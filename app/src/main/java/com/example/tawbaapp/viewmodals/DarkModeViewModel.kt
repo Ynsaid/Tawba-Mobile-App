@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import com.example.tawbaapp.Classes.AppPreferences
+import com.example.tawbaapp.classes.AppPreferences
 
 
 class DarkModeViewModel(application: Application) : AndroidViewModel(application) {

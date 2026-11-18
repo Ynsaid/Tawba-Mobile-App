@@ -5,8 +5,8 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.tawbaapp.Classes.ReadingProgressPreference
-import com.example.tawbaapp.Classes.Surah
+import com.example.tawbaapp.classes.ReadingProgressPreference
+import com.example.tawbaapp.classes.Surah
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 

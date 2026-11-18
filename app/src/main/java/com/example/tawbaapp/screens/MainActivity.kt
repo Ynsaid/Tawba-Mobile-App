@@ -17,9 +17,9 @@ import androidx.navigation.navArgument
 import com.example.tawbaapp.R
 import com.example.tawbaapp.viewmodals.DarkModeViewModel
 import com.example.tawbaapp.viewmodals.ReadingProgressViewModel
-import com.example.tawbaapp.Classes.AppPreferences
-import com.example.tawbaapp.Classes.ReaderPreference
-import com.example.tawbaapp.Classes.Surah
+import com.example.tawbaapp.classes.AppPreferences
+import com.example.tawbaapp.classes.ReaderPreference
+import com.example.tawbaapp.classes.Surah
 import com.example.tawbaapp.ui.theme.TawbaAppTheme
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken

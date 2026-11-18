@@ -25,6 +25,7 @@ import com.example.tawbaapp.R
 import com.example.tawbaapp.ui.theme.Black
 import com.example.tawbaapp.ui.theme.Green
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun HomePage(navController: NavController) {
