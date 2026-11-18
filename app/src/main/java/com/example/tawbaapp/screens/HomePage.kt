@@ -87,7 +87,7 @@ fun StartButton(navController: NavController) {
     LaunchedEffect(Unit) {
         while (true) {
             moveRight = !moveRight
-            delay(600)
+            delay(600.milliseconds)
         }
     }
 

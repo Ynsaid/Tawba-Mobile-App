@@ -26,13 +26,14 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import androidx.core.content.edit
 
 data class PrayerDayData(
     val date: LocalDate,
     val times: PrayerTimes,
     val sunrise: String,
     val zoneId: String,
-    val methodName: String
+    val methodName: String,
 )
 
 data class PrayerUiState(
@@ -41,14 +42,14 @@ data class PrayerUiState(
     val isGpsLocation: Boolean = false,
     val today: PrayerDayData? = null,
     val tomorrow: PrayerDayData? = null,
-    val error: String? = null
+    val error: String? = null,
 )
 
 private data class PrayerLocationChoice(
     val city: String = "Algiers",
     val country: String = "DZ",
     val latitude: Double? = null,
-    val longitude: Double? = null
+    val longitude: Double? = null,
 ) {
     val usesCoordinates: Boolean
         get() = latitude != null && longitude != null
@@ -68,7 +69,7 @@ private data class PrayerLocationChoice(
 
 @RequiresApi(Build.VERSION_CODES.O)
 class PrayerViewModel(
-    application: Application
+    application: Application,
 ) : AndroidViewModel(application) {
 
     private val preferences = application.getSharedPreferences(
@@ -79,10 +80,9 @@ class PrayerViewModel(
     private val _uiState = MutableStateFlow(PrayerUiState())
     val uiState: StateFlow<PrayerUiState> = _uiState.asStateFlow()
 
-    // أبقينا هذا المتغير للتوافق مع الشاشات القديمة.
+
     private val _prayerTimes = MutableStateFlow<PrayerTimes?>(null)
-    val prayerTimes: StateFlow<PrayerTimes?> =
-        _prayerTimes.asStateFlow()
+
 
     private var activeLocation = readSavedLocation()
     private var requestJob: Job? = null
@@ -93,7 +93,7 @@ class PrayerViewModel(
 
     fun fetchPrayerTimes(
         city: String = "Algiers",
-        country: String = "DZ"
+        country: String = "DZ",
     ) {
         val cleanCity = city.trim()
         val cleanCountry = country.trim()
@@ -115,7 +115,7 @@ class PrayerViewModel(
 
     fun fetchPrayerTimesByCoordinates(
         latitude: Double,
-        longitude: Double
+        longitude: Double,
     ) {
         if (
             !latitude.isFinite() ||
@@ -230,7 +230,7 @@ class PrayerViewModel(
                 )
             } catch (exception: CancellationException) {
                 throw exception
-            } catch (exception: Exception) {
+            } catch (_: Exception) {
                 _uiState.value = PrayerUiState(
                     locationLabel = location.label,
                     isGpsLocation = location.usesCoordinates,
@@ -242,7 +242,7 @@ class PrayerViewModel(
 
     private fun requestDay(
         location: PrayerLocationChoice,
-        date: LocalDate
+        date: LocalDate,
     ): PrayerDayData {
         val formattedDate = date.format(
             DateTimeFormatter.ofPattern(
@@ -381,9 +381,9 @@ class PrayerViewModel(
     }
 
     private fun saveLocation(
-        location: PrayerLocationChoice
+        location: PrayerLocationChoice,
     ) {
-        preferences.edit().apply {
+        preferences.edit {
             putBoolean(
                 "uses_coordinates",
                 location.usesCoordinates
@@ -401,7 +401,7 @@ class PrayerViewModel(
                 "longitude",
                 location.longitude?.toString()
             )
-        }.apply()
+        }
     }
 
     private fun readSavedLocation(): PrayerLocationChoice {
