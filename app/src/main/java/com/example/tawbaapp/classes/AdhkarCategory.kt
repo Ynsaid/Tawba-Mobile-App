@@ -1,5 +1,7 @@
 package com.example.tawbaapp.classes
 
+import android.graphics.Color
+
 data class AdhkarCategory(
     val id: String,
     val title: String,
