@@ -1,135 +1,464 @@
 package com.example.tawbaapp.screens
 
-import android.os.Build
-import androidx.annotation.RequiresApi
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.tawbaapp.viewmodals.DarkModeViewModel
 import com.example.tawbaapp.R
-import com.example.tawbaapp.ui.theme.Bg_Prayer
 import com.example.tawbaapp.ui.theme.Green
+import com.example.tawbaapp.viewmodals.DarkModeViewModel
 
-@RequiresApi(Build.VERSION_CODES.Q)
+private data class DhikrCategoryUi(
+    val id: String,
+    val title: String,
+    val description: String,
+    val imageRes: Int,
+    val background: Color,
+    val isDua: Boolean = false
+)
+
+private val dhikrCategories = listOf(
+    DhikrCategoryUi(
+        id = "morning",
+        title = "أذكار الصباح",
+        description = "أذكار بداية اليوم",
+        imageRes = R.drawable.sun_svg_orange_icon_,
+        background = Color(0xFFFFF2D8)
+    ),
+    DhikrCategoryUi(
+        id = "evening",
+        title = "أذكار المساء",
+        description = "أذكار المساء",
+        imageRes = R.drawable.moon_svg_icon,
+        background = Color(0xFFE7EFFF)
+    ),
+    DhikrCategoryUi(
+        id = "after_prayer",
+        title = "بعد الصلاة",
+        description = "أذكار عقب الصلاة",
+        imageRes = R.drawable.pray_svg_icon,
+        background = Color(0xFFE4F2E8)
+    ),
+    DhikrCategoryUi(
+        id = "sleep",
+        title = "قبل النوم",
+        description = "أذكار النوم",
+        imageRes = R.drawable.sleeping_svg_icon,
+        background = Color(0xFFF6E7F2)
+    ),
+    DhikrCategoryUi(
+        id = "wake_up",
+        title = "الاستيقاظ",
+        description = "أذكار الاستيقاظ",
+        imageRes = R.drawable.getup_svg_icon,
+        background = Color(0xFFEEE8FC)
+    ),
+    DhikrCategoryUi(
+        id = "food",
+        title = "الطعام",
+        description = "أذكار الطعام",
+        imageRes = R.drawable.eat_svg_icon,
+        background = Color(0xFFFBE7E3)
+    ),
+    DhikrCategoryUi(
+        id = "rizq",
+        title = "دعاء الرزق",
+        description = "الدعاء بالرزق",
+        imageRes = R.drawable.rizq_svg_icon,
+        background = Color(0xFFE7EFFF),
+        isDua = true
+    ),
+    DhikrCategoryUi(
+        id = "shifa",
+        title = "دعاء الشفاء",
+        description = "الدعاء للمريض",
+        imageRes = R.drawable.shifa_svg_icon,
+        background = Color(0xFFF6E7F2),
+        isDua = true
+    ),
+    DhikrCategoryUi(
+        id = "tawba",
+        title = "دعاء التوبة",
+        description = "التوبة والاستغفار",
+        imageRes = R.drawable.tawba_svg_icon,
+        background = Color(0xFFFFF2D8),
+        isDua = true
+    ),
+    DhikrCategoryUi(
+        id = "karb",
+        title = "دعاء الكرب",
+        description = "الدعاء عند الضيق",
+        imageRes = R.drawable.karb_svg_icon,
+        background = Color(0xFFE4F2E8),
+        isDua = true
+    ),
+    DhikrCategoryUi(
+        id = "rain",
+        title = "دعاء المطر",
+        description = "الدعاء عند المطر",
+        imageRes = R.drawable.matar_svg_icon,
+        background = Color(0xFFEEE8FC),
+        isDua = true
+    ),
+    DhikrCategoryUi(
+        id = "istikhara",
+        title = "دعاء الاستخارة",
+        description = "الاستخارة في الأمور",
+        imageRes = R.drawable.istikhara_svg_icon,
+        background = Color(0xFFFBE7E3),
+        isDua = true
+    )
+)
+
+private val dhikrSearchMarks =
+    Regex("[\\u064B-\\u065F\\u0670\\u0640]")
+
+private fun normalizeDhikrSearch(text: String): String {
+    return text
+        .replace(dhikrSearchMarks, "")
+        .replace('أ', 'ا')
+        .replace('إ', 'ا')
+        .replace('آ', 'ا')
+        .replace('ى', 'ي')
+        .trim()
+}
+
 @Composable
-fun AdhkarsPage(navController: NavController,darkModeViewModel: DarkModeViewModel) {
-    val amiri = FontFamily(Font(R.font.amiri_regular))
-    // اذكار list
-    val adhkarItems = listOf(
-        Triple("أذكار الصباح", R.drawable.sun_svg_orange_icon_, Color(0xFFB2F0B2)),
-        Triple("أذكار المساء", R.drawable.moon_svg_icon, Color(0xFFCCE5FF)),
-        Triple("بعد الصلاة", R.drawable.pray_svg_icon, Color(0xFFFFD6A5)),
-        Triple("قبل النوم", R.drawable.sleeping_svg_icon, Color(0xFFFFB5E8)),
-        Triple("الاستيقاظ", R.drawable.getup_svg_icon, Color(0xFFDFD7FF)),
-        Triple("الطعام", R.drawable.eat_svg_icon, Color(0xFFFFC6C6))
-    )
-    // ادعية list
-    val adiyaItems = listOf(
-        Triple("دعاء الرزق", R.drawable.rizq_svg_icon, Color(0xFFCCE5FF)),
-        Triple("دعاء الشفاء", R.drawable.shifa_svg_icon, Color(0xFFFFB5E8)),
-        Triple("دعاء التوبة", R.drawable.tawba_svg_icon, Color(0xFFFFD6A5)),
-        Triple("دعاء الكرب", R.drawable.karb_svg_icon, Color(0xFFB2F0B2)),
-        Triple("دعاء المطر", R.drawable.matar_svg_icon, Color(0xFFDFD7FF)),
-        Triple("دعاء الاستخارة", R.drawable.istikhara_svg_icon, Color(0xFFFFC6C6))
-    )
-
+fun AdhkarsPage(
+    navController: NavController,
+    darkModeViewModel: DarkModeViewModel
+) {
     val isDark by darkModeViewModel.isDark.collectAsState()
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(if (isDark) Color.Black else Color.White)
+
+    val amiri = remember {
+        FontFamily(Font(R.font.amiri_regular))
+    }
+
+    var selectedTab by rememberSaveable {
+        mutableStateOf(0)
+    }
+
+    var query by rememberSaveable {
+        mutableStateOf("")
+    }
+
+    val background = if (isDark) {
+        Color(0xFF0E1410)
+    } else {
+        Color(0xFFF6F8F5)
+    }
+
+    val surface = if (isDark) {
+        Color(0xFF18221C)
+    } else {
+        Color.White
+    }
+
+    val textColor = if (isDark) {
+        Color(0xFFE7EFE9)
+    } else {
+        Color(0xFF17251D)
+    }
+
+    val secondaryColor = if (isDark) {
+        Color(0xFFA2B2A7)
+    } else {
+        Color(0xFF66766C)
+    }
+
+    val accent = if (isDark) {
+        Color(0xFF76D6A0)
+    } else {
+        Green
+    }
+
+    val filteredItems = remember(selectedTab, query) {
+        val search = normalizeDhikrSearch(query)
+
+        dhikrCategories.filter { category ->
+            val matchesTab =
+                category.isDua == (selectedTab == 1)
+
+            val matchesSearch = search.isBlank() ||
+                    normalizeDhikrSearch(
+                        category.title + " " + category.description
+                    ).contains(search)
+
+            matchesTab && matchesSearch
+        }
+    }
+
+    CompositionLocalProvider(
+        LocalLayoutDirection provides LayoutDirection.Rtl
     ) {
-        item {
-            // Back button
-            Row(
+        Scaffold(
+            containerColor = background
+        ) { innerPadding ->
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 32.dp)
+                    .fillMaxSize()
+                    .padding(innerPadding)
             ) {
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.arrow_left_icon),
-                        contentDescription = "Back",
-                        tint = Green
-                    )
-                }
-            }
+                // اتجاه الشريط ثابت لإبقاء سهم الرجوع يسارًا.
+                CompositionLocalProvider(
+                    LocalLayoutDirection provides LayoutDirection.Ltr
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                horizontal = 8.dp,
+                                vertical = 4.dp
+                            ),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(
+                            onClick = {
+                                navController.popBackStack()
+                            },
+                            modifier = Modifier.size(48.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(
+                                    R.drawable.arrow_left_icon
+                                ),
+                                contentDescription = "رجوع",
+                                tint = accent,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
 
-            // Title: أذكار
-            Text(
-                text = "أذكار",
-                fontSize = 32.sp,
-                fontFamily = amiri,
-                textAlign = TextAlign.End,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp,end = 16.dp),
-                color = Green
-            )
+                        Text(
+                            text = "الأذكار والأدعية",
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Center,
+                            color = textColor,
+                            fontFamily = amiri,
+                            fontSize = 22.sp
+                        )
 
-            // Grid: أذكار
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
-                modifier = Modifier
-                    .height(300.dp)
-                    .padding(top = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-                horizontalArrangement = Arrangement.spacedBy(20.dp),
-                userScrollEnabled = false
-            ) {
-                itemsIndexed(adhkarItems) { _, (title, image) ->
-                    AdhkarItem(title = title, color = Bg_Prayer, image = image){
-                        navController.navigate("adhkar_detail/$title")
+                        Spacer(Modifier.size(48.dp))
                     }
                 }
-            }
 
-            // Title: أدعية
-            Text(
-                text = "أدعية",
-                fontSize = 32.sp,
-                fontFamily = amiri,
-                textAlign = TextAlign.End,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 32.dp,end = 16.dp),
-                color = Green
-            )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = 20.dp,
+                            vertical = 10.dp
+                        ),
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = "أذكار وأدعية ليومك",
+                        color = textColor,
+                        fontFamily = amiri,
+                        fontSize = 28.sp,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-            // Grid: أدعية
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
-                modifier = Modifier
-                    .height(300.dp)
-                    .padding(top = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-                horizontalArrangement = Arrangement.spacedBy(20.dp),
-                userScrollEnabled = false
-            ) {
-                itemsIndexed(adiyaItems) { _, (title, image) ->
-                    AdhkarItem(title = title, color = Bg_Prayer, image = image){
-                        navController.navigate("adhkar_detail/$title")
+                    Text(
+                        text = "اختر القسم المناسب، أو ابحث عن عنوانه.",
+                        color = secondaryColor,
+                        fontSize = 13.sp,
+                        lineHeight = 22.sp,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = 16.dp,
+                            vertical = 8.dp
+                        ),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    DhikrTabButton(
+                        title = "الأذكار",
+                        selected = selectedTab == 0,
+                        accent = accent,
+                        surface = surface,
+                        textColor = textColor,
+                        font = amiri,
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            selectedTab = 0
+                        }
+                    )
+
+                    DhikrTabButton(
+                        title = "الأدعية",
+                        selected = selectedTab == 1,
+                        accent = accent,
+                        surface = surface,
+                        textColor = textColor,
+                        font = amiri,
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            selectedTab = 1
+                        }
+                    )
+                }
+
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = {
+                        query = it
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = 16.dp,
+                            vertical = 8.dp
+                        ),
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    textStyle = LocalTextStyle.current.copy(
+                        textAlign = TextAlign.Start,
+                        color = textColor
+                    ),
+                    placeholder = {
+                        Text(
+                            text = "ابحث في الأقسام",
+                            color = secondaryColor,
+                            textAlign = TextAlign.Start
+                        )
+                    },
+                    trailingIcon = {
+                        if (query.isNotEmpty()) {
+                            TextButton(
+                                onClick = {
+                                    query = ""
+                                }
+                            ) {
+                                Text(
+                                    text = "مسح",
+                                    color = accent
+                                )
+                            }
+                        }
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = surface,
+                        unfocusedContainerColor = surface,
+                        focusedTextColor = textColor,
+                        unfocusedTextColor = textColor,
+                        focusedBorderColor = accent,
+                        unfocusedBorderColor =
+                            secondaryColor.copy(alpha = 0.3f),
+                        cursorColor = accent
+                    )
+                )
+
+                Text(
+                    text = "عدد الأقسام: ${filteredItems.size}",
+                    color = secondaryColor,
+                    fontSize = 12.sp,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = 20.dp,
+                            vertical = 6.dp
+                        )
+                )
+
+                if (filteredItems.isEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .padding(24.dp),
+                        horizontalAlignment =
+                            Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "لا توجد نتائج",
+                            color = textColor,
+                            fontFamily = amiri,
+                            fontSize = 24.sp
+                        )
+
+                        Spacer(Modifier.height(8.dp))
+
+                        Text(
+                            text = "جرّب كلمة أخرى أو غيّر التبويب.",
+                            color = secondaryColor,
+                            textAlign = TextAlign.Center,
+                            fontSize = 13.sp
+                        )
+                    }
+                } else {
+                    LazyVerticalGrid(
+                        columns = GridCells.Adaptive(
+                            minSize = 145.dp
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentPadding = PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 8.dp,
+                            bottom = 24.dp
+                        ),
+                        horizontalArrangement =
+                            Arrangement.spacedBy(12.dp),
+                        verticalArrangement =
+                            Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(
+                            items = filteredItems,
+                            key = { it.id }
+                        ) { category ->
+                            DhikrCategoryCard(
+                                category = category,
+                                isDark = isDark,
+                                surface = surface,
+                                textColor = textColor,
+                                secondaryColor = secondaryColor,
+                                font = amiri,
+                                onClick = {
+                                    // نحافظ على استخدام العنوان
+                                    // كما في شاشة التفاصيل الأصلية.
+                                    val title = Uri.encode(category.title)
+
+                                    navController.navigate(
+                                        "adhkar_detail/$title"
+                                    ) {
+                                        launchSingleTop = true
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -138,33 +467,112 @@ fun AdhkarsPage(navController: NavController,darkModeViewModel: DarkModeViewMode
 }
 
 @Composable
-fun AdhkarItem(title: String, color: Color, image: Int,onClick:()->Unit) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .width(80.dp)
+private fun DhikrTabButton(
+    title: String,
+    selected: Boolean,
+    accent: Color,
+    surface: Color,
+    textColor: Color,
+    font: FontFamily,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = modifier
+            // تحديد الارتفاع يمنع التمدد الذي ظهر بالصورة.
+            .height(50.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(14.dp),
+        color = if (selected) {
+            accent.copy(alpha = 0.14f)
+        } else {
+            surface
+        }
     ) {
         Box(
-            modifier = Modifier
-                .size(80.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(color)
-                .clickable { onClick() }, // Handle click
+            modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(id = image),
-                contentDescription = title,
-                modifier = Modifier.size(36.dp)
+            Text(
+                text = title,
+                color = if (selected) accent else textColor,
+                fontFamily = font,
+                fontSize = 19.sp,
+                textAlign = TextAlign.Center
             )
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = title,
-            fontSize = 14.sp,
-            color = Green,
-            fontFamily = FontFamily(Font(R.font.amiri_regular)),
-            textAlign = TextAlign.Center
-        )
+    }
+}
+
+@Composable
+private fun DhikrCategoryCard(
+    category: DhikrCategoryUi,
+    isDark: Boolean,
+    surface: Color,
+    textColor: Color,
+    secondaryColor: Color,
+    font: FontFamily,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(20.dp),
+        color = if (isDark) {
+            surface
+        } else {
+            category.background
+        }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 160.dp)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(
+                        if (isDark) {
+                            category.background.copy(alpha = 0.15f)
+                        } else {
+                            Color.White.copy(alpha = 0.7f)
+                        }
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(category.imageRes),
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+
+            Text(
+                text = category.title,
+                color = textColor,
+                fontFamily = font,
+                fontSize = 21.sp,
+                lineHeight = 28.sp,
+                textAlign = TextAlign.Start,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Text(
+                text = category.description,
+                color = secondaryColor,
+                fontSize = 12.sp,
+                lineHeight = 19.sp,
+                textAlign = TextAlign.Start,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
