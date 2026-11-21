@@ -502,12 +502,6 @@ private fun HomePrayerSection(
                     fontFamily = font,
                     fontSize = 18.sp
                 )
-                Text(
-                    text = state.locationLabel,
-                    color = colors.secondary,
-                    fontSize = 11.sp,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
             }
             TextButton(
                 onClick = onOpenPrayers
