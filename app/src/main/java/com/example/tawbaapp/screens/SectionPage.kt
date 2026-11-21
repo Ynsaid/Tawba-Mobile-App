@@ -632,11 +632,6 @@ private fun HomePrayerSection(
             }
         }
 
-        Text(
-            text = "التحديد يشير إلى آخر صلاة دخل موعدها.",
-            color = colors.secondary,
-            fontSize = 10.sp
-        )
     }
 }
 
