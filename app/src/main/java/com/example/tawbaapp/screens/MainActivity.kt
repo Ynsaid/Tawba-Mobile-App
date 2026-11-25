@@ -7,7 +7,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -117,14 +120,12 @@ class MainActivity : ComponentActivity() {
                             val passedReader =
                                 backStackEntry.arguments?.getString("readerId") ?: "default"
 
-                            val readerIdState by produceState<String?>(
-                                initialValue = null,
-                                key1 = passedReader
-                            ) {
-                                value = if (passedReader == "default") {
-                                    ReaderPreference(this@MainActivity).getReaderId()
-                                } else {
-                                    passedReader
+                            var readerIdState by remember(passedReader) {
+                                mutableStateOf<String?>(if (passedReader != "default") passedReader else null)
+                            }
+                            LaunchedEffect(passedReader) {
+                                if (passedReader == "default") {
+                                    readerIdState = ReaderPreference(this@MainActivity).getReaderId()
                                 }
                             }
 
