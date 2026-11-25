@@ -24,15 +24,20 @@ import androidx.navigation.NavController
 import com.example.tawbaapp.R
 import com.example.tawbaapp.ui.theme.Black
 import com.example.tawbaapp.ui.theme.Green
+import com.example.tawbaapp.viewmodals.DarkModeViewModel
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
-fun HomePage(navController: NavController) {
+fun HomePage(navController: NavController, darkModeViewModel: DarkModeViewModel) {
+    val isDark by darkModeViewModel.isDark.collectAsState()
+    val backgroundColor = if (isDark) Color(0xFF0E1410) else Color.White
+    val textColor = if (isDark) Color.White else Black
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(backgroundColor)
             .padding(top = 124.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -67,7 +72,7 @@ fun HomePage(navController: NavController) {
             text = "إستمع و إقرا القران مع الاذكار يوميا",
             fontFamily = FontFamily(Font(R.font.cairo_medium)),
             fontSize = 24.sp,
-            color = Black
+            color = textColor
         )
 
         Spacer(modifier = Modifier.height(24.dp))

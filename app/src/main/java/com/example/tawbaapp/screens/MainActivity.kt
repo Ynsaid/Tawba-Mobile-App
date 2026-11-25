@@ -6,11 +6,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -48,10 +55,18 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val darkModeViewModel: DarkModeViewModel = viewModel()
                 val readingProgressViewModel: ReadingProgressViewModel = viewModel()
+                val isDark by darkModeViewModel.isDark.collectAsState()
 
                 NavHost(
                     navController = navController,
-                    startDestination = "splash"
+                    startDestination = "splash",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(if (isDark) Color(0xFF0E1410) else Color.White),
+                    enterTransition = { EnterTransition.None },
+                    exitTransition = { ExitTransition.None },
+                    popEnterTransition = { EnterTransition.None },
+                    popExitTransition = { ExitTransition.None }
                 ) {
                     composable("splash") {
                         SplashScreen(
@@ -68,95 +83,94 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     }
-                        composable("home") {
-                            HomePage(navController)
+                    composable("home") {
+                        HomePage(navController, darkModeViewModel)
+                    }
+                    composable("section") {
+                        SectionPage(
+                            navController = navController,
+                            darkModeViewModel = darkModeViewModel,
+                            readingProgressViewModel = readingProgressViewModel,
+                            surahList = surahList
+                        )
+                    }
+                    composable("reading") {
+                        ReadingPage(
+                            navController = navController,
+                            surahs = surahList,
+                            darkModeViewModel = darkModeViewModel
+                        )
+                    }
+                    composable(
+                        route = "surah/{surahJson}",
+                        arguments = listOf(
+                            navArgument("surahJson") {
+                                type = NavType.StringType
+                            }
+                        )
+                    ) { backStackEntry ->
+                        val surahJsonEncoded =
+                            backStackEntry.arguments?.getString("surahJson") ?: ""
+
+                        val surahJson = URLDecoder.decode(surahJsonEncoded, "UTF-8")
+                        val surah = Gson().fromJson(surahJson, Surah::class.java)
+
+                        SurahPage(
+                            navController = navController,
+                            surah = surah,
+                            darkModeViewModel = darkModeViewModel,
+                            readingProgressViewModel = readingProgressViewModel
+                        )
+                    }
+
+                    composable(
+                        route = "listing/{readerId}",
+                        arguments = listOf(
+                            navArgument("readerId") {
+                                defaultValue = "default"
+                            }
+                        )
+                    ) { backStackEntry ->
+
+                        val passedReader =
+                            backStackEntry.arguments?.getString("readerId") ?: "default"
+
+                        var readerIdState by remember(passedReader) {
+                            mutableStateOf<String?>(if (passedReader != "default") passedReader else null)
                         }
-                        composable("section") {
-                            SectionPage(
+                        LaunchedEffect(passedReader) {
+                            if (passedReader == "default") {
+                                readerIdState = ReaderPreference(this@MainActivity).getReaderId()
+                            }
+                        }
+
+                        readerIdState?.let { readerId ->
+                            ListeningPage(
                                 navController = navController,
                                 darkModeViewModel = darkModeViewModel,
-                                readingProgressViewModel = readingProgressViewModel,
-                                surahList = surahList
+                                readerId = readerId
                             )
                         }
-                        composable("reading") {
-                            ReadingPage(
-                                navController = navController,
-                                surahs = surahList,
-                                darkModeViewModel = darkModeViewModel
-                            )
-                        }
-                        composable(
-                            route = "surah/{surahJson}",
-                            arguments = listOf(
-                                navArgument("surahJson") {
-                                    type = NavType.StringType
-                                }
-                            )
-                        ) { backStackEntry ->
-                            val surahJsonEncoded =
-                                backStackEntry.arguments?.getString("surahJson") ?: ""
+                    }
 
-                            val surahJson = URLDecoder.decode(surahJsonEncoded, "UTF-8")
-                            val surah = Gson().fromJson(surahJson, Surah::class.java)
+                    composable("prayers") {
+                        PrayersPage(
+                            navController = navController,
+                            darkModeViewModel = darkModeViewModel
 
-                            SurahPage(
-                                navController = navController,
-                                surah = surah,
-                                darkModeViewModel = darkModeViewModel,
-                                readingProgressViewModel = readingProgressViewModel
-                            )
-                        }
+                        )
+                    }
 
-                        composable(
-                            route = "listing/{readerId}",
-                            arguments = listOf(
-                                navArgument("readerId") {
-                                    defaultValue = "default"
-                                }
-                            )
-                        ) { backStackEntry ->
+                    composable("adhkars") {
+                        AdhkarsPage(navController, darkModeViewModel)
+                    }
 
-                            val passedReader =
-                                backStackEntry.arguments?.getString("readerId") ?: "default"
-
-                            var readerIdState by remember(passedReader) {
-                                mutableStateOf<String?>(if (passedReader != "default") passedReader else null)
-                            }
-                            LaunchedEffect(passedReader) {
-                                if (passedReader == "default") {
-                                    readerIdState = ReaderPreference(this@MainActivity).getReaderId()
-                                }
-                            }
-
-                            readerIdState?.let { readerId ->
-                                ListeningPage(
-                                    navController = navController,
-                                    darkModeViewModel = darkModeViewModel,
-                                    readerId = readerId
-                                )
-                            }
-                        }
-
-                        composable("prayers") {
-                            PrayersPage(
-                                navController = navController,
-                                darkModeViewModel = darkModeViewModel
-
-                            )
-                        }
-
-                        composable("adhkars") {
-                            AdhkarsPage(navController, darkModeViewModel)
-                        }
-
-                        composable("adhkar_detail/{title}") { backStackEntry ->
-                            val title = backStackEntry.arguments?.getString("title") ?: ""
-                            AdhkarDetailPage(title, navController, darkModeViewModel)
-                        }
+                    composable("adhkar_detail/{title}") { backStackEntry ->
+                        val title = backStackEntry.arguments?.getString("title") ?: ""
+                        AdhkarDetailPage(title, navController, darkModeViewModel)
                     }
                 }
             }
         }
     }
-
+}
