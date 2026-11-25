@@ -745,7 +745,6 @@ private fun HomeReadingCard(
                     fontFamily = titleFont,
                     fontSize = 12.sp
                 )
-
                 Text(
                     text = if (hasSavedReading) {
                         surahName.orEmpty()
@@ -758,7 +757,6 @@ private fun HomeReadingCard(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
-
                 Text(
                     text = if (
                         hasSavedReading &&
@@ -772,9 +770,7 @@ private fun HomeReadingCard(
                     fontSize = 12.sp,
                     lineHeight = 20.sp
                 )
-
                 Spacer(Modifier.height(4.dp))
-
                 Button(
                     onClick = onContinue,
                     shape = RoundedCornerShape(12.dp),
@@ -797,9 +793,7 @@ private fun HomeReadingCard(
                         fontFamily = titleFont,
                         fontSize = 11.sp
                     )
-
                     Spacer(Modifier.width(10.dp))
-
                     AnimatedContinueArrow(
                         color = colors.hero,
                         animate = canResume
@@ -813,8 +807,8 @@ private fun HomeReadingCard(
                 ),
                 contentDescription = null,
                 modifier = Modifier
-                    .weight(0.65f)
-                    .height(132.dp)
+                    .weight(2f)
+                    .height(182.dp)
             )
         }
     }
