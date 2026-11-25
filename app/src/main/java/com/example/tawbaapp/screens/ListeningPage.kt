@@ -1,8 +1,7 @@
 package com.example.tawbaapp.screens
 
+import android.content.ComponentName
 import android.content.Context
-import android.media.AudioAttributes
-import android.media.MediaPlayer
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import androidx.compose.foundation.background
@@ -64,8 +63,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
 import androidx.navigation.NavController
 import com.example.tawbaapp.R
+import com.example.tawbaapp.services.QuranPlaybackService
 import com.example.tawbaapp.ui.theme.Green
 import com.example.tawbaapp.viewmodals.DarkModeViewModel
 import kotlinx.coroutines.delay
@@ -195,49 +202,6 @@ private val surahs: List<SurahAudio> = listOf(
     SurahAudio("الناس", "An-Nas", 114)
 )
 
-private fun MediaPlayer?.safeIsPlaying(): Boolean {
-    return try {
-        this != null && isPlaying
-    } catch (_: IllegalStateException) {
-        false
-    }
-}
-
-private fun MediaPlayer?.safePause() {
-    try {
-        if (this != null && isPlaying) {
-            pause()
-        }
-    } catch (_: IllegalStateException) {
-    }
-}
-
-private fun MediaPlayer?.safeStart() {
-    try {
-        this?.start()
-    } catch (_: IllegalStateException) {
-    }
-}
-
-private fun MediaPlayer?.safeSeekTo(position: Int) {
-    try {
-        this?.seekTo(position)
-    } catch (_: IllegalStateException) {
-    }
-}
-
-private fun MediaPlayer?.safeRelease() {
-    try {
-        this?.reset()
-    } catch (_: Exception) {
-    }
-
-    try {
-        this?.release()
-    } catch (_: Exception) {
-    }
-}
-
 private fun isInternetAvailable(context: Context): Boolean {
     val connectivityManager = context.getSystemService(
         Context.CONNECTIVITY_SERVICE
@@ -279,7 +243,7 @@ fun ListeningPage(
     var progress by remember { mutableFloatStateOf(0f) }
     var currentText by remember { mutableStateOf("0:00") }
     var durationText by remember { mutableStateOf("0:00") }
-    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+    var mediaController by remember { mutableStateOf<MediaController?>(null) }
     var audioError by remember { mutableStateOf<String?>(null) }
     var showNoInternet by remember { mutableStateOf(false) }
     var scrollToTop by remember { mutableStateOf(false) }
@@ -312,15 +276,102 @@ fun ListeningPage(
         }
     }
 
-    fun releaseCurrentPlayer() {
-        mediaPlayer.safeRelease()
-        mediaPlayer = null
-        isPlaying = false
-        isPrepared = false
-        isLoadingAudio = false
-        progress = 0f
-        currentText = "0:00"
-        durationText = "0:00"
+    LaunchedEffect(context) {
+        val sessionToken = SessionToken(
+            context,
+            ComponentName(context, QuranPlaybackService::class.java)
+        )
+        val controllerFuture = MediaController.Builder(context, sessionToken).buildAsync()
+        controllerFuture.addListener({
+            val controller = controllerFuture.get()
+            mediaController = controller
+            isPlaying = controller.isPlaying
+            isPrepared = controller.playbackState == Player.STATE_READY || controller.playbackState == Player.STATE_BUFFERING
+
+            controller.currentMediaItem?.let { item ->
+                item.mediaId?.let { id ->
+                    val idx = surahs.indexOfFirst { it.number.toString() == id }
+                    if (idx != -1) {
+                        selectedIndex = idx
+                    }
+                }
+            }
+        }, ContextCompat.getMainExecutor(context))
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            mediaController?.let {
+                MediaController.releaseFuture(
+                    MediaController.Builder(
+                        context,
+                        SessionToken(context, ComponentName(context, QuranPlaybackService::class.java))
+                    ).buildAsync()
+                )
+            }
+            mediaController = null
+        }
+    }
+
+    LaunchedEffect(mediaController) {
+        val controller = mediaController ?: return@LaunchedEffect
+
+        val listener = object : Player.Listener {
+            override fun onIsPlayingChanged(playing: Boolean) {
+                isPlaying = playing
+                isLoadingAudio = false
+            }
+
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                isPrepared = playbackState == Player.STATE_READY || playbackState == Player.STATE_BUFFERING
+                if (playbackState == Player.STATE_READY) {
+                    isLoadingAudio = false
+                }
+            }
+
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                mediaItem?.mediaId?.let { id ->
+                    val idx = surahs.indexOfFirst { it.number.toString() == id }
+                    if (idx != -1) {
+                        selectedIndex = idx
+                        if (idx == 0 && reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
+                            scrollToTop = true
+                        }
+                    }
+                }
+            }
+
+            override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                audioError = "تعذر تشغيل التلاوة. تحقق من اتصال الإنترنت وحاول مجددًا."
+                isLoadingAudio = false
+            }
+        }
+
+        controller.addListener(listener)
+    }
+
+    LaunchedEffect(mediaController) {
+        while (isActive) {
+            val controller = mediaController
+
+            if (controller != null && (controller.playbackState == Player.STATE_READY || controller.playbackState == Player.STATE_BUFFERING)) {
+                try {
+                    val total = controller.duration
+                    val current = controller.currentPosition
+
+                    if (total > 0 && total != C.TIME_UNSET) {
+                        currentText = formatTime(current.toInt())
+                        durationText = formatTime(total.toInt())
+                        progress = current.toFloat() / total.toFloat()
+                    }
+
+                    isPlaying = controller.isPlaying
+                } catch (_: Exception) {
+                }
+            }
+
+            delay(500.milliseconds)
+        }
     }
 
     fun playSurah(index: Int) {
@@ -331,115 +382,35 @@ fun ListeningPage(
             return
         }
 
-        releaseCurrentPlayer()
         selectedIndex = index
         isLoadingAudio = true
         audioError = null
 
-        val audioUrl =
-            "https://server8.mp3quran.net/$readerId/" +
-                    surahs[index].number
-                        .toString()
-                        .padStart(3, '0') +
-                    ".mp3"
+        val controller = mediaController
+        if (controller != null) {
+            val mediaItems = surahs.map { surah ->
+                val audioUrl =
+                    "https://server8.mp3quran.net/$readerId/" +
+                            surah.number
+                                .toString()
+                                .padStart(3, '0') +
+                            ".mp3"
 
-        val newPlayer = MediaPlayer().apply {
-            setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                MediaItem.Builder()
+                    .setUri(audioUrl)
+                    .setMediaId(surah.number.toString())
+                    .setMediaMetadata(
+                        MediaMetadata.Builder()
+                            .setTitle(surah.arabicName)
+                            .setArtist("القرآن الكريم")
+                            .build()
+                    )
                     .build()
-            )
-        }
-
-        mediaPlayer = newPlayer
-
-        try {
-            newPlayer.setDataSource(audioUrl)
-
-            newPlayer.setOnPreparedListener { player ->
-                if (mediaPlayer !== player) {
-                    player.safeRelease()
-                    return@setOnPreparedListener
-                }
-
-                isPrepared = true
-                isLoadingAudio = false
-                player.safeStart()
-                isPlaying = true
             }
 
-            newPlayer.setOnCompletionListener { player ->
-                if (mediaPlayer !== player) {
-                    player.safeRelease()
-                    return@setOnCompletionListener
-                }
-
-                isPlaying = false
-                isPrepared = false
-
-                val nextIndex =
-                    if (index == surahs.lastIndex) {
-                        0
-                    } else {
-                        index + 1
-                    }
-
-                playSurah(nextIndex)
-
-                if (nextIndex == 0) {
-                    scrollToTop = true
-                }
-            }
-
-            newPlayer.setOnErrorListener { player, _, _ ->
-                if (mediaPlayer === player) {
-                    audioError =
-                        "تعذر تشغيل التلاوة. تحقق من اتصال الإنترنت وحاول مجددًا."
-                    releaseCurrentPlayer()
-                } else {
-                    player.safeRelease()
-                }
-
-                true
-            }
-
-            newPlayer.prepareAsync()
-        } catch (_: Exception) {
-            audioError =
-                "تعذر تشغيل التلاوة. تحقق من اتصال الإنترنت وحاول مجددًا."
-            releaseCurrentPlayer()
-        }
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            releaseCurrentPlayer()
-        }
-    }
-
-    LaunchedEffect(mediaPlayer, isPrepared) {
-        while (isActive) {
-            val player = mediaPlayer
-
-            if (player != null && isPrepared) {
-                try {
-                    val total = player.duration
-                    val current = player.currentPosition
-
-                    if (total > 0) {
-                        currentText = formatTime(current)
-                        durationText = formatTime(total)
-                        progress = current.toFloat() / total.toFloat()
-                    }
-
-                    isPlaying = player.safeIsPlaying()
-                } catch (_: IllegalStateException) {
-                    isPlaying = false
-                }
-            }
-
-            delay(500.milliseconds)
+            controller.setMediaItems(mediaItems, index, 0L)
+            controller.prepare()
+            controller.play()
         }
     }
 
@@ -460,7 +431,6 @@ fun ListeningPage(
         ) {
             IconButton(
                 onClick = {
-                    releaseCurrentPlayer()
                     navController.popBackStack()
                 }
             ) {
@@ -547,14 +517,14 @@ fun ListeningPage(
                     onValueChange = { value ->
                         progress = value
 
-                        val player = mediaPlayer
+                        val controller = mediaController
 
-                        if (player != null && isPrepared) {
+                        if (controller != null && controller.duration > 0 && controller.duration != C.TIME_UNSET) {
                             val newPosition =
-                                (value * player.duration).toInt()
+                                (value * controller.duration).toLong()
 
-                            player.safeSeekTo(newPosition)
-                            currentText = formatTime(newPosition)
+                            controller.seekTo(newPosition)
+                            currentText = formatTime(newPosition.toInt())
                         }
                     },
                     enabled = isPrepared,
@@ -582,7 +552,10 @@ fun ListeningPage(
                         modifier = Modifier
                             .size(26.dp)
                             .clickable {
-                                if (selectedIndex > 0) {
+                                val controller = mediaController
+                                if (controller != null && controller.hasPreviousMediaItem()) {
+                                    controller.seekToPreviousMediaItem()
+                                } else if (selectedIndex > 0) {
                                     playSurah(selectedIndex - 1)
                                 }
                             }
@@ -596,17 +569,20 @@ fun ListeningPage(
                                 Color.White.copy(alpha = 0.18f)
                             )
                             .clickable {
-                                val player = mediaPlayer
+                                val controller = mediaController
 
-                                if (player == null || !isPrepared) {
+                                if (controller == null) {
                                     return@clickable
                                 }
 
-                                if (player.safeIsPlaying()) {
-                                    player.safePause()
+                                if (controller.isPlaying) {
+                                    controller.pause()
                                     isPlaying = false
                                 } else {
-                                    player.safeStart()
+                                    if (controller.playbackState == Player.STATE_IDLE) {
+                                        controller.prepare()
+                                    }
+                                    controller.play()
                                     isPlaying = true
                                 }
                             },
@@ -644,7 +620,10 @@ fun ListeningPage(
                         modifier = Modifier
                             .size(26.dp)
                             .clickable {
-                                if (selectedIndex < surahs.lastIndex) {
+                                val controller = mediaController
+                                if (controller != null && controller.hasNextMediaItem()) {
+                                    controller.seekToNextMediaItem()
+                                } else if (selectedIndex < surahs.lastIndex) {
                                     playSurah(selectedIndex + 1)
                                 }
                             }
@@ -682,7 +661,7 @@ fun ListeningPage(
                     },
                     leadingIcon = {
                         Icon(
-                            imageVector = 	Icons.Outlined.Search,
+                            imageVector = Icons.Outlined.Search,
                             contentDescription = "بحث",
                             tint = Green
                         )
@@ -695,7 +674,7 @@ fun ListeningPage(
                                 }
                             ) {
                                 Icon(
-                                    imageVector = 	Icons.Outlined.Close,
+                                    imageVector = Icons.Outlined.Close,
                                     contentDescription = "مسح البحث",
                                     tint = mutedColor
                                 )
