@@ -289,7 +289,7 @@ fun ListeningPage(
             isPrepared = controller.playbackState == Player.STATE_READY || controller.playbackState == Player.STATE_BUFFERING
 
             controller.currentMediaItem?.let { item ->
-                item.mediaId?.let { id ->
+                item.mediaId.let { id ->
                     val idx = surahs.indexOfFirst { it.number.toString() == id }
                     if (idx != -1) {
                         selectedIndex = idx
@@ -359,7 +359,7 @@ fun ListeningPage(
                     val total = controller.duration
                     val current = controller.currentPosition
 
-                    if (total > 0 && total != C.TIME_UNSET) {
+                    if (total > 0) {
                         currentText = formatTime(current.toInt())
                         durationText = formatTime(total.toInt())
                         progress = current.toFloat() / total.toFloat()
@@ -569,11 +569,8 @@ fun ListeningPage(
                                 Color.White.copy(alpha = 0.18f)
                             )
                             .clickable {
-                                val controller = mediaController
+                                val controller = mediaController ?:   return@clickable
 
-                                if (controller == null) {
-                                    return@clickable
-                                }
 
                                 if (controller.isPlaying) {
                                     controller.pause()
