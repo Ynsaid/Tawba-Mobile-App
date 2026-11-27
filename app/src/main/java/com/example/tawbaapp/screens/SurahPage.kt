@@ -1,5 +1,6 @@
 package com.example.tawbaapp.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
@@ -186,42 +189,48 @@ fun SurahPage(
             }
         }
 
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
-                .clip(RoundedCornerShape(28.dp))
-                .background(headerColor)
+                .padding(horizontal = 16.dp, vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .aspectRatio(985f / 110f),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = surah.name,
-                    fontSize = 32.sp,
-                    fontFamily = FontFamily(Font(R.font.amiri_regular)),
-                    color = Color.White
+                Image(
+                    painter = painterResource(id = R.drawable.surah_header),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.FillBounds
                 )
 
-                if (surah.id != 1 && surah.id != 9) {
-                    HorizontalDivider(
-                        modifier = Modifier
-                            .padding(vertical = 8.dp)
-                            .width(180.dp),
-                        thickness = 0.5.dp,
-                        color = Color.White.copy(alpha = 0.5f)
-                    )
+                Text(
+                    text = surah.name,
+                    fontSize = 16.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    fontFamily = FontFamily(Font(R.font.amiri_regular)),
+                    color = Color(0xFF1B5E20),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(0.34f)
+                )
+            }
 
-                    Text(
-                        text = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
-                        fontSize = 20.sp,
-                        fontFamily = FontFamily(Font(R.font.amiri_regular)),
-                        color = Color.White
-                    )
-                }
+            if (surah.id != 1 && surah.id != 9) {
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+                    fontSize = 24.sp,
+                    fontFamily = FontFamily(Font(R.font.amiri_regular)),
+                    color = textPrimary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
 
