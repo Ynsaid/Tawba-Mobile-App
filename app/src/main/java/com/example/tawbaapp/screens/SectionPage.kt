@@ -36,9 +36,9 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.tawbaapp.R
 import com.example.tawbaapp.classes.ReaderPreference
 import com.example.tawbaapp.classes.Surah
-import com.example.tawbaapp.R
 import com.example.tawbaapp.ui.theme.Green
 import com.example.tawbaapp.viewmodals.DarkModeViewModel
 import com.example.tawbaapp.viewmodals.PrayerViewModel
@@ -94,9 +94,7 @@ private val homeReaders = listOf(
     HomeReader("فارس عباد", "frs_a")
 )
 
-private val homeSearchMarks = Regex(
-    "[\\u064B-\\u065F\\u0670\\u0640]"
-)
+private val homeSearchMarks = Regex("[\\u064B-\\u065F\\u0670\\u0640]")
 
 private fun normalizeHomeSearch(value: String): String {
     return value
@@ -126,46 +124,66 @@ fun SectionPage(
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
 
-    val snackbarState = remember {
-        SnackbarHostState()
-    }
+    val snackbarState = remember { SnackbarHostState() }
 
     val readerPreference = remember(context.applicationContext) {
         ReaderPreference(context.applicationContext)
     }
 
-    val gson = remember {
-        Gson()
-    }
+    val gson = remember { Gson() }
+    val cairoBold = remember { FontFamily(Font(R.font.cairo_blod)) }
+    val amiriRegular = remember { FontFamily(Font(R.font.amiri_regular)) }
 
-    val cairoBold = remember {
-        FontFamily(Font(R.font.cairo_blod))
-    }
-
-    val amiriRegular = remember {
-        FontFamily(Font(R.font.amiri_regular))
-    }
-
-    var showReaderSheet by rememberSaveable {
-        mutableStateOf(false)
-    }
+    var showReaderSheet by rememberSaveable { mutableStateOf(false) }
 
     var selectedReaderId by rememberSaveable {
         mutableStateOf(homeReaders.first().id)
     }
 
+    // اجعل القارئ المحفوظ هو المحدد مسبقاً في شاشة الاختيار
+    LaunchedEffect(readerPreference) {
+        val saved = try {
+            readerPreference.getSavedReaderId()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            null
+        }
+        if (saved != null && homeReaders.any { it.id == saved }) {
+            selectedReaderId = saved
+        }
+    }
+
     val selectedReader = remember(selectedReaderId) {
-        homeReaders.firstOrNull {
-            it.id == selectedReaderId
-        } ?: homeReaders.first()
+        homeReaders.firstOrNull { it.id == selectedReaderId } ?: homeReaders.first()
+    }
+
+    // زر "الاستماع": إن وُجد قارئ محفوظ انتقل مباشرة، وإلا اعرض الاختيار
+    val openListening: () -> Unit = {
+        scope.launch {
+            val savedId = try {
+                readerPreference.getSavedReaderId()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                null
+            }
+
+            if (savedId != null && homeReaders.any { it.id == savedId }) {
+                selectedReaderId = savedId
+                navController.navigate("listing/$savedId") {
+                    launchSingleTop = true
+                }
+            } else {
+                showReaderSheet = true
+            }
+        }
     }
 
     val savedSurahId = lastRead?.surahId
 
     val resumeSurah = remember(surahList, savedSurahId) {
-        surahList.firstOrNull {
-            it.id == savedSurahId
-        }
+        surahList.firstOrNull { it.id == savedSurahId }
     }
 
     val colors = remember(isDark) {
@@ -200,44 +218,32 @@ fun SectionPage(
 
     Scaffold(
         containerColor = colors.background,
-        snackbarHost = {
-            SnackbarHost(snackbarState)
-        }
+        snackbarHost = { SnackbarHost(snackbarState) }
     ) { scaffoldPadding ->
-        CompositionLocalProvider(
-            LocalLayoutDirection provides LayoutDirection.Rtl
-        ) {
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(scaffoldPadding)
                     .verticalScroll(scrollState)
-                    .padding(
-                        horizontal = 16.dp,
-                        vertical = 12.dp
-                    ),
-                verticalArrangement =
-                    Arrangement.spacedBy(20.dp)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 HomeTopBar(
                     isDark = isDark,
                     colors = colors,
                     font = cairoBold,
-                    onReaderClick = {
-                        showReaderSheet = true
-                    },
-                    onThemeClick = {
-                        darkModeViewModel.toggleTheme()
-                    }
+                    // الزر العلوي: دائماً يفتح شاشة تغيير القارئ
+                    onReaderClick = { showReaderSheet = true },
+                    onThemeClick = { darkModeViewModel.toggleTheme() }
                 )
+
                 HomePrayerSection(
                     viewModel = prayerViewModel,
                     colors = colors,
                     font = cairoBold,
                     onOpenPrayers = {
-                        navController.navigate("prayers") {
-                            launchSingleTop = true
-                        }
+                        navController.navigate("prayers") { launchSingleTop = true }
                     }
                 )
 
@@ -250,22 +256,11 @@ fun SectionPage(
                     titleFont = cairoBold,
                     quranFont = amiriRegular,
                     onContinue = {
-
                         if (resumeSurah != null) {
-                            val json = URLEncoder.encode(
-                                gson.toJson(resumeSurah),
-                                "UTF-8"
-                            )
-
-                            navController.navigate(
-                                "surah/$json"
-                            ) {
-                                launchSingleTop = true
-                            }
+                            val json = URLEncoder.encode(gson.toJson(resumeSurah), "UTF-8")
+                            navController.navigate("surah/$json") { launchSingleTop = true }
                         } else {
-                            navController.navigate("reading") {
-                                launchSingleTop = true
-                            }
+                            navController.navigate("reading") { launchSingleTop = true }
                         }
                     }
                 )
@@ -278,14 +273,10 @@ fun SectionPage(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Column(
-                    verticalArrangement =
-                        Arrangement.spacedBy(12.dp)
-                ) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement =
-                            Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         HomeSectionCard(
                             title = "القراءة",
@@ -297,9 +288,7 @@ fun SectionPage(
                             font = cairoBold,
                             modifier = Modifier.weight(1f),
                             onClick = {
-                                navController.navigate("reading") {
-                                    launchSingleTop = true
-                                }
+                                navController.navigate("reading") { launchSingleTop = true }
                             }
                         )
 
@@ -312,16 +301,13 @@ fun SectionPage(
                             secondaryColor = colors.secondary,
                             font = cairoBold,
                             modifier = Modifier.weight(1f),
-                            onClick = {
-                                showReaderSheet = true
-                            }
+                            onClick = openListening
                         )
                     }
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement =
-                            Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         HomeSectionCard(
                             title = "مواقيت الصلاة",
@@ -333,9 +319,7 @@ fun SectionPage(
                             font = cairoBold,
                             modifier = Modifier.weight(1f),
                             onClick = {
-                                navController.navigate("prayers") {
-                                    launchSingleTop = true
-                                }
+                                navController.navigate("prayers") { launchSingleTop = true }
                             }
                         )
 
@@ -349,9 +333,7 @@ fun SectionPage(
                             font = cairoBold,
                             modifier = Modifier.weight(1f),
                             onClick = {
-                                navController.navigate("adhkars") {
-                                    launchSingleTop = true
-                                }
+                                navController.navigate("adhkars") { launchSingleTop = true }
                             }
                         )
                     }
@@ -365,9 +347,7 @@ fun SectionPage(
             selectedReaderId = selectedReader.id,
             colors = colors,
             font = cairoBold,
-            onDismiss = {
-                showReaderSheet = false
-            },
+            onDismiss = { showReaderSheet = false },
             onConfirm = { reader ->
                 selectedReaderId = reader.id
 
@@ -377,17 +357,13 @@ fun SectionPage(
                     } catch (exception: CancellationException) {
                         throw exception
                     } catch (_: Exception) {
-                        snackbarState.showSnackbar(
-                            "تعذر حفظ القارئ المفضل."
-                        )
+                        snackbarState.showSnackbar("تعذر حفظ القارئ المفضل.")
                     }
                 }
 
                 showReaderSheet = false
 
-                navController.navigate(
-                    "listing/${reader.id}"
-                ) {
+                navController.navigate("listing/${reader.id}") {
                     launchSingleTop = true
                 }
             }
@@ -408,20 +384,15 @@ private fun HomePrayerSection(
 
     val zone = remember(state.today?.zoneId) {
         runCatching {
-            ZoneId.of(
-                state.today?.zoneId ?: "Africa/Algiers"
-            )
-        }.getOrDefault(
-            ZoneId.of("Africa/Algiers")
-        )
+            ZoneId.of(state.today?.zoneId ?: "Africa/Algiers")
+        }.getOrDefault(ZoneId.of("Africa/Algiers"))
     }
 
     var now by remember(zone) {
         mutableStateOf(ZonedDateTime.now(zone))
     }
 
-    // تحديث هذا القسم عند بداية كل دقيقة،
-    // دون مؤقت يغيّر حالة الصفحة الرئيسية كلها.
+    // تحديث هذا القسم عند بداية كل دقيقة
     LaunchedEffect(zone, viewModel) {
         while (isActive) {
             val current = ZonedDateTime.now(zone)
@@ -435,10 +406,10 @@ private fun HomePrayerSection(
                 .withNano(0)
 
             delay(
-                Duration.between(
-                    current,
-                    nextMinute
-                ).toMillis().coerceAtLeast(250L).milliseconds
+                Duration.between(current, nextMinute)
+                    .toMillis()
+                    .coerceAtLeast(250L)
+                    .milliseconds
             )
         }
     }
@@ -457,19 +428,13 @@ private fun HomePrayerSection(
                 name = name,
                 time = value ?: "--:--",
                 parsedTime = value?.let {
-                    runCatching {
-                        LocalTime.parse(it)
-                    }.getOrNull()
+                    runCatching { LocalTime.parse(it) }.getOrNull()
                 }
             )
         }
     }
 
-    val currentPrayerName = remember(
-        prayers,
-        now,
-        state.today?.date
-    ) {
+    val currentPrayerName = remember(prayers, now, state.today?.date) {
         if (state.today?.date != now.toLocalDate()) {
             null
         } else {
@@ -485,17 +450,12 @@ private fun HomePrayerSection(
         }
     }
 
-    Column(
-        verticalArrangement =
-            Arrangement.spacedBy(10.dp)
-    ) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "صلوات اليوم",
                     color = colors.text,
@@ -503,9 +463,7 @@ private fun HomePrayerSection(
                     fontSize = 18.sp
                 )
             }
-            TextButton(
-                onClick = onOpenPrayers
-            ) {
+            TextButton(onClick = onOpenPrayers) {
                 Text(
                     text = "التفاصيل",
                     color = colors.accent,
@@ -522,41 +480,26 @@ private fun HomePrayerSection(
                 trackColor = colors.surface
             )
         }
-        BoxWithConstraints(
-            modifier = Modifier.fillMaxWidth()
-        ) {
+
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
             val spacing = 8.dp
 
-            val cardWidth = (
-                    (maxWidth - spacing * 4) / 5f
-                    ).coerceAtLeast(68.dp)
+            val cardWidth = ((maxWidth - spacing * 4) / 5f).coerceAtLeast(68.dp)
 
-            LazyRow(
-                horizontalArrangement =
-                    Arrangement.spacedBy(spacing)
-            ) {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(spacing)) {
                 items(
                     items = prayers,
                     key = { it.name }
                 ) { prayer ->
                     val isCurrent =
-                        !state.isLoading &&
-                                prayer.name == currentPrayerName
+                        !state.isLoading && prayer.name == currentPrayerName
 
                     Surface(
                         modifier = Modifier
                             .width(cardWidth)
-                            .clip(
-                                RoundedCornerShape(16.dp)
-                            )
-                            .clickable(
-                                onClick = onOpenPrayers
-                            ),
-                        color = if (isCurrent) {
-                            colors.hero
-                        } else {
-                            colors.surface
-                        },
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable(onClick = onOpenPrayers),
+                        color = if (isCurrent) colors.hero else colors.surface,
                         shape = RoundedCornerShape(16.dp)
                     ) {
                         Column(
@@ -564,35 +507,24 @@ private fun HomePrayerSection(
                                 horizontal = 4.dp,
                                 vertical = 14.dp
                             ),
-                            horizontalAlignment =
-                                Alignment.CenterHorizontally,
-                            verticalArrangement =
-                                Arrangement.spacedBy(8.dp)
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
                                 text = prayer.name,
                                 fontFamily = font,
                                 fontSize = 11.sp,
-                                color = if (isCurrent) {
-                                    Color.White
-                                } else {
-                                    colors.text
-                                },
+                                color = if (isCurrent) Color.White else colors.text,
                                 maxLines = 1
                             )
 
                             CompositionLocalProvider(
-                                LocalLayoutDirection provides
-                                        LayoutDirection.Ltr
+                                LocalLayoutDirection provides LayoutDirection.Ltr
                             ) {
                                 Text(
                                     text = prayer.time,
                                     fontSize = 15.sp,
-                                    color = if (isCurrent) {
-                                        Color.White
-                                    } else {
-                                        colors.accent
-                                    },
+                                    color = if (isCurrent) Color.White else colors.accent,
                                     maxLines = 1
                                 )
                             }
@@ -603,10 +535,7 @@ private fun HomePrayerSection(
         }
 
         state.error?.let {
-            Row(
-                verticalAlignment =
-                    Alignment.CenterVertically
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "تعذر تحميل المواقيت",
                     color = colors.secondary,
@@ -614,9 +543,7 @@ private fun HomePrayerSection(
                     modifier = Modifier.weight(1f)
                 )
 
-                TextButton(
-                    onClick = viewModel::refresh
-                ) {
+                TextButton(onClick = viewModel::refresh) {
                     Text(
                         text = "إعادة المحاولة",
                         color = colors.accent,
@@ -625,7 +552,6 @@ private fun HomePrayerSection(
                 }
             }
         }
-
     }
 }
 
@@ -637,9 +563,7 @@ private fun HomeTopBar(
     onReaderClick: () -> Unit,
     onThemeClick: () -> Unit
 ) {
-    CompositionLocalProvider(
-        LocalLayoutDirection provides LayoutDirection.Ltr
-    ) {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -654,11 +578,8 @@ private fun HomeTopBar(
                 ) {
                     Icon(
                         painter = painterResource(
-                            if (isDark) {
-                                R.drawable.list_svg_icon_light
-                            } else {
-                                R.drawable.list_svg_icon_dark
-                            }
+                            if (isDark) R.drawable.list_svg_icon_light
+                            else R.drawable.list_svg_icon_dark
                         ),
                         contentDescription = "اختيار القارئ",
                         tint = colors.text,
@@ -686,11 +607,8 @@ private fun HomeTopBar(
                 ) {
                     Icon(
                         painter = painterResource(
-                            if (isDark) {
-                                R.drawable.sun_svg_icon
-                            } else {
-                                R.drawable.moon_svg_icon
-                            }
+                            if (isDark) R.drawable.sun_svg_icon
+                            else R.drawable.moon_svg_icon
                         ),
                         contentDescription = if (isDark) {
                             "تفعيل الوضع النهاري"
@@ -727,30 +645,20 @@ private fun HomeReadingCard(
                 .fillMaxWidth()
                 .padding(20.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement =
-                Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement =
-                    Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = if (hasSavedReading) {
-                        "القراءة الأخيرة"
-                    } else {
-                        "ابدأ رحلتك مع القرآن"
-                    },
+                    text = if (hasSavedReading) "القراءة الأخيرة" else "ابدأ رحلتك مع القرآن",
                     color = Color.White.copy(alpha = 0.8f),
                     fontFamily = titleFont,
                     fontSize = 12.sp
                 )
                 Text(
-                    text = if (hasSavedReading) {
-                        surahName.orEmpty()
-                    } else {
-                        "وردك اليومي"
-                    },
+                    text = if (hasSavedReading) surahName.orEmpty() else "وردك اليومي",
                     color = Color.White,
                     fontFamily = quranFont,
                     fontSize = 28.sp,
@@ -758,10 +666,7 @@ private fun HomeReadingCard(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = if (
-                        hasSavedReading &&
-                        ayahNumber != null
-                    ) {
+                    text = if (hasSavedReading && ayahNumber != null) {
                         "الآية $ayahNumber"
                     } else {
                         "ابدأ بسورة واختر وقتك المناسب"
@@ -785,11 +690,7 @@ private fun HomeReadingCard(
                     )
                 ) {
                     Text(
-                        text = if (canResume) {
-                            "متابعة القراءة"
-                        } else {
-                            "تصفح السور"
-                        },
+                        text = if (canResume) "متابعة القراءة" else "تصفح السور",
                         fontFamily = titleFont,
                         fontSize = 11.sp
                     )
@@ -802,9 +703,7 @@ private fun HomeReadingCard(
             }
 
             Image(
-                painter = painterResource(
-                    R.drawable.mosshaf
-                ),
+                painter = painterResource(R.drawable.mosshaf),
                 contentDescription = null,
                 modifier = Modifier
                     .weight(2f)
@@ -819,9 +718,7 @@ private fun AnimatedContinueArrow(
     color: Color,
     animate: Boolean
 ) {
-    val offsetX = remember {
-        Animatable(8f)
-    }
+    val offsetX = remember { Animatable(8f) }
 
     LaunchedEffect(animate) {
         if (!animate) {
@@ -830,35 +727,22 @@ private fun AnimatedContinueArrow(
         }
 
         while (isActive) {
-            offsetX.animateTo(
-                targetValue = 0f,
-                animationSpec = tween(500)
-            )
-
+            offsetX.animateTo(targetValue = 0f, animationSpec = tween(500))
             delay(600.milliseconds)
-
-            offsetX.animateTo(
-                targetValue = 8f,
-                animationSpec = tween(500)
-            )
-
+            offsetX.animateTo(targetValue = 8f, animationSpec = tween(500))
             delay(600.milliseconds)
         }
     }
 
     Icon(
-        painter = painterResource(
-            R.drawable.arrow_left_icon
-        ),
+        painter = painterResource(R.drawable.arrow_left_icon),
         contentDescription = null,
         tint = color,
         modifier = Modifier
             .size(18.dp)
             .offset {
                 IntOffset(
-                    x = offsetX.value.dp
-                        .toPx()
-                        .roundToInt(),
+                    x = offsetX.value.dp.toPx().roundToInt(),
                     y = 0
                 )
             }
@@ -889,8 +773,7 @@ private fun HomeSectionCard(
                 .fillMaxWidth()
                 .heightIn(min = 180.dp)
                 .padding(16.dp),
-            verticalArrangement =
-                Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
                 text = title,
@@ -930,13 +813,9 @@ private fun HomeReaderSheet(
     onDismiss: () -> Unit,
     onConfirm: (HomeReader) -> Unit
 ) {
-    var query by rememberSaveable {
-        mutableStateOf("")
-    }
+    var query by rememberSaveable { mutableStateOf("") }
 
-    var pendingReaderId by rememberSaveable(
-        selectedReaderId
-    ) {
+    var pendingReaderId by rememberSaveable(selectedReaderId) {
         mutableStateOf(selectedReaderId)
     }
 
@@ -947,39 +826,27 @@ private fun HomeReaderSheet(
             homeReaders
         } else {
             homeReaders.filter {
-                normalizeHomeSearch(it.name)
-                    .contains(normalizedQuery)
+                normalizeHomeSearch(it.name).contains(normalizedQuery)
             }
         }
     }
 
     val pendingReader = remember(pendingReaderId) {
-        homeReaders.firstOrNull {
-            it.id == pendingReaderId
-        } ?: homeReaders.first()
+        homeReaders.firstOrNull { it.id == pendingReaderId } ?: homeReaders.first()
     }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(
-            skipPartiallyExpanded = true
-        ),
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = colors.surface
     ) {
-        CompositionLocalProvider(
-            LocalLayoutDirection provides LayoutDirection.Rtl
-        ) {
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .imePadding()
-                    .padding(
-                        start = 20.dp,
-                        end = 20.dp,
-                        bottom = 20.dp
-                    ),
-                verticalArrangement =
-                    Arrangement.spacedBy(14.dp)
+                    .padding(start = 20.dp, end = 20.dp, bottom = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Text(
                     text = "اختر صوت التلاوة",
@@ -987,63 +854,47 @@ private fun HomeReaderSheet(
                     fontFamily = font,
                     fontSize = 21.sp
                 )
-
                 Text(
                     text = "اختر القارئ ثم انتقل إلى قائمة السور.",
                     color = colors.secondary,
                     fontSize = 13.sp
                 )
-
                 OutlinedTextField(
                     value = query,
-                    onValueChange = {
-                        query = it
-                    },
+                    onValueChange = { query = it },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     shape = RoundedCornerShape(14.dp),
                     placeholder = {
-                        Text(
-                            text = "ابحث عن قارئ",
-                            fontSize = 13.sp
-                        )
+                        Text(text = "ابحث عن قارئ", fontSize = 13.sp)
                     },
                     textStyle = LocalTextStyle.current.copy(
                         textAlign = TextAlign.Start
                     ),
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Search
-                    ),
-                    colors =
-                        OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = colors.text,
-                            unfocusedTextColor = colors.text,
-                            focusedBorderColor = colors.accent,
-                            unfocusedBorderColor =
-                                colors.secondary.copy(alpha = 0.4f),
-                            cursorColor = colors.accent,
-                            focusedPlaceholderColor =
-                                colors.secondary,
-                            unfocusedPlaceholderColor =
-                                colors.secondary
-                        )
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = colors.text,
+                        unfocusedTextColor = colors.text,
+                        focusedBorderColor = colors.accent,
+                        unfocusedBorderColor = colors.secondary.copy(alpha = 0.4f),
+                        cursorColor = colors.accent,
+                        focusedPlaceholderColor = colors.secondary,
+                        unfocusedPlaceholderColor = colors.secondary
+                    )
                 )
 
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(max = 280.dp),
-                    verticalArrangement =
-                        Arrangement.spacedBy(6.dp)
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     if (filteredReaders.isEmpty()) {
                         item(key = "empty") {
                             Text(
                                 text = "لا يوجد قارئ مطابق للبحث.",
                                 color = colors.secondary,
-                                modifier = Modifier.padding(
-                                    vertical = 18.dp
-                                )
+                                modifier = Modifier.padding(vertical = 18.dp)
                             )
                         }
                     }
@@ -1052,54 +903,35 @@ private fun HomeReaderSheet(
                         items = filteredReaders,
                         key = { it.id }
                     ) { reader ->
-                        val selected =
-                            reader.id == pendingReaderId
+                        val selected = reader.id == pendingReaderId
 
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(
-                                    if (selected) {
-                                        colors.accent.copy(
-                                            alpha = 0.12f
-                                        )
-                                    } else {
-                                        Color.Transparent
-                                    }
+                                    if (selected) colors.accent.copy(alpha = 0.12f)
+                                    else Color.Transparent
                                 )
-                                .clickable {
-                                    pendingReaderId = reader.id
-                                }
-                                .padding(
-                                    horizontal = 12.dp,
-                                    vertical = 8.dp
-                                )
+                                .clickable { pendingReaderId = reader.id }
+                                .padding(horizontal = 12.dp, vertical = 8.dp)
                                 .heightIn(min = 48.dp),
-                            verticalAlignment =
-                                Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             RadioButton(
                                 selected = selected,
                                 onClick = null,
-                                colors =
-                                    RadioButtonDefaults.colors(
-                                        selectedColor =
-                                            colors.accent,
-                                        unselectedColor =
-                                            colors.secondary
-                                    )
+                                colors = RadioButtonDefaults.colors(
+                                    selectedColor = colors.accent,
+                                    unselectedColor = colors.secondary
+                                )
                             )
 
                             Spacer(Modifier.width(12.dp))
 
                             Text(
                                 text = reader.name,
-                                color = if (selected) {
-                                    colors.accent
-                                } else {
-                                    colors.text
-                                },
+                                color = if (selected) colors.accent else colors.text,
                                 fontFamily = font,
                                 fontSize = 13.sp,
                                 modifier = Modifier.weight(1f)
@@ -1109,9 +941,7 @@ private fun HomeReaderSheet(
                 }
 
                 Button(
-                    onClick = {
-                        onConfirm(pendingReader)
-                    },
+                    onClick = { onConfirm(pendingReader) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 50.dp),
