@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -23,7 +22,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -55,8 +53,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.tawbaapp.classes.Surah
 import com.example.tawbaapp.R
+import com.example.tawbaapp.classes.Surah
 import com.example.tawbaapp.ui.theme.Green
 import com.example.tawbaapp.viewmodals.DarkModeViewModel
 import com.example.tawbaapp.viewmodals.ReadingProgressViewModel
@@ -71,12 +69,14 @@ private val DarkBorder = Color(0xFF2A362E)
 private val DarkTextPrimary = Color(0xFFE6EEE8)
 private val DarkTextSecondary = Color(0xFF9AA9A0)
 private val DarkAccent = Color(0xFF5FCB8C)
-private val DarkHeader = Color(0xFF1B6B43)
 
 private val LightSurface = Color(0xFFF5F7F3)
 private val LightBorder = Color(0xFFE3E8E1)
 private val LightTextPrimary = Color(0xFF111111)
 private val LightTextSecondary = Color(0xFF6B756C)
+
+private val HeaderTextColor = Color(0xFF1B5E20)
+private const val BASMALA = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"
 
 private val ArabicMarks = Regex("[\\u064B-\\u065F\\u0670\\u06D6-\\u06ED\\u0640]")
 
@@ -111,7 +111,6 @@ fun SurahPage(
     val textPrimary = if (isDark) DarkTextPrimary else LightTextPrimary
     val textSecondary = if (isDark) DarkTextSecondary else LightTextSecondary
     val accentColor = if (isDark) DarkAccent else Green
-    val headerColor = if (isDark) DarkHeader else Green
 
     val verses = surah.verses
 
@@ -138,7 +137,6 @@ fun SurahPage(
 
     val visibleIndices = remember(searchQuery, surah.id) {
         val query = normalizeArabic(searchQuery)
-
         if (query.isBlank()) {
             verses.indices.toList()
         } else {
@@ -178,9 +176,7 @@ fun SurahPage(
                 .padding(start = 16.dp, end = 16.dp, top = 32.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(
-                onClick = { navController.popBackStack() }
-            ) {
+            IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     painter = painterResource(id = R.drawable.arrow_left_icon),
                     contentDescription = "رجوع",
@@ -189,60 +185,56 @@ fun SurahPage(
             }
         }
 
-        Column(
+        // 1) الصورة + اسم السورة
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .aspectRatio(985f / 110f),
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(985f / 110f),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.surah_header),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.FillBounds
-                )
+            Image(
+                painter = painterResource(id = R.drawable.surah_header),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.FillBounds
+            )
 
-                Text(
-                    text = surah.name,
-                    fontSize = 16.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    fontFamily = FontFamily(Font(R.font.amiri_regular)),
-                    color = Color(0xFF1B5E20),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(0.34f)
-                )
-            }
-
-            if (surah.id != 1 && surah.id != 9) {
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
-                    fontSize = 24.sp,
-                    fontFamily = FontFamily(Font(R.font.amiri_regular)),
-                    color = textPrimary,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+            Text(
+                text = "سورة " + surah.name,
+                fontSize = 24.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                fontFamily = FontFamily(Font(R.font.amiri_regular)),
+                color = HeaderTextColor,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(0.34f)
+            )
         }
 
-        CompositionLocalProvider(
-            LocalLayoutDirection provides LayoutDirection.Rtl
-        ) {
+        // 2) البسملة تحت الصورة مباشرة
+        if (surah.id != 1 && surah.id != 9) {
+            Text(
+                text = BASMALA,
+                fontSize = 24.sp,
+                fontFamily = FontFamily(Font(R.font.amiri_regular)),
+                color = textPrimary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+        }
+
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+
+            // 3) البحث
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
                 placeholder = {
@@ -272,9 +264,7 @@ fun SurahPage(
                         }
                     }
                 },
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Search
-                ),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = surfaceColor,
                     unfocusedContainerColor = surfaceColor,
@@ -286,10 +276,12 @@ fun SurahPage(
                 )
             )
 
+            // 4) الآيات: تأخذ المساحة المتبقية فقط
             if (visibleIndices.isEmpty()) {
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .weight(1f)
+                        .fillMaxWidth()
                         .padding(24.dp),
                     contentAlignment = Alignment.TopCenter
                 ) {
@@ -303,11 +295,13 @@ fun SurahPage(
             } else {
                 LazyColumn(
                     state = listState,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
                     contentPadding = PaddingValues(
                         start = 16.dp,
                         end = 16.dp,
-                        top = 16.dp,
+                        top = 12.dp,
                         bottom = 32.dp
                     ),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -330,9 +324,7 @@ fun SurahPage(
                                 modifier = Modifier
                                     .size(32.dp)
                                     .clip(RoundedCornerShape(10.dp))
-                                    .background(
-                                        accentColor.copy(alpha = 0.14f)
-                                    ),
+                                    .background(accentColor.copy(alpha = 0.14f)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
@@ -348,9 +340,7 @@ fun SurahPage(
                                 text = ayah.text,
                                 fontSize = 24.sp,
                                 lineHeight = 40.sp,
-                                fontFamily = FontFamily(
-                                    Font(R.font.amiri_regular)
-                                ),
+                                fontFamily = FontFamily(Font(R.font.amiri_regular)),
                                 color = accentColor,
                                 textAlign = TextAlign.Right,
                                 modifier = Modifier.fillMaxWidth()
@@ -362,9 +352,7 @@ fun SurahPage(
                                 text = ayah.translation,
                                 fontSize = 14.sp,
                                 lineHeight = 22.sp,
-                                fontFamily = FontFamily(
-                                    Font(R.font.cairo_regular)
-                                ),
+                                fontFamily = FontFamily(Font(R.font.cairo_regular)),
                                 color = textSecondary,
                                 textAlign = TextAlign.Right,
                                 modifier = Modifier.fillMaxWidth()
